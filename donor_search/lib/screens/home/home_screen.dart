@@ -104,24 +104,34 @@ class _HomeScreenState extends State<HomeScreen> {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Row(
-                        children: [
-                          const Icon(Icons.people_alt_outlined, color: AppColors.primary, size: 20),
-                          const SizedBox(width: 8),
-                          Text(
-                            _selectedBloodFilter == 'ALL'
-                                ? 'Nearby Donors (${_donors.length})'
-                                : '$_selectedBloodFilter Donors (${_donors.length})',
-                            style: const TextStyle(
-                              fontSize: 17,
-                              fontWeight: FontWeight.w800,
-                              color: AppColors.textPrimary,
+                      Expanded(
+                        child: Row(
+                          children: [
+                            const Icon(Icons.people_alt_outlined, color: AppColors.primary, size: 20),
+                            const SizedBox(width: 8),
+                            Flexible(
+                              child: Text(
+                                _selectedBloodFilter == 'ALL'
+                                    ? 'Nearby Donors (${_donors.length})'
+                                    : '$_selectedBloodFilter Donors (${_donors.length})',
+                                style: const TextStyle(
+                                  fontSize: 17,
+                                  fontWeight: FontWeight.w800,
+                                  color: AppColors.textPrimary,
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                              ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                       TextButton(
                         onPressed: () => widget.onTabChange?.call(1),
+                        style: TextButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+                          minimumSize: Size.zero,
+                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        ),
                         child: const Text(
                           'View All',
                           style: TextStyle(
@@ -302,24 +312,27 @@ class _HomeScreenState extends State<HomeScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Search Blood Donor',
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.w900,
-                      color: Colors.white,
+              const Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Search Blood Donor',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.w900,
+                        color: Colors.white,
+                      ),
                     ),
-                  ),
-                  SizedBox(height: 4),
-                  Text(
-                    'Search by live location or manual area',
-                    style: TextStyle(fontSize: 12, color: Colors.white70),
-                  ),
-                ],
+                    SizedBox(height: 4),
+                    Text(
+                      'Search by live location or manual area',
+                      style: TextStyle(fontSize: 12, color: Colors.white70),
+                    ),
+                  ],
+                ),
               ),
+              const SizedBox(width: 8),
               Container(
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
@@ -473,34 +486,45 @@ class _HomeScreenState extends State<HomeScreen> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Row(
-                children: [
-                  Icon(Icons.emergency, color: AppColors.criticalUrgency, size: 20),
-                  SizedBox(width: 8),
-                  Text(
-                    'Emergency Blood Requests',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: AppColors.textPrimary),
-                  ),
-                ],
+              const Expanded(
+                child: Row(
+                  children: [
+                    Icon(Icons.emergency, color: AppColors.criticalUrgency, size: 20),
+                    SizedBox(width: 8),
+                    Flexible(
+                      child: Text(
+                        'Emergency Blood Requests',
+                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: AppColors.textPrimary),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                ),
               ),
               TextButton(
                 onPressed: () => widget.onTabChange?.call(3), // Go to Requests Tab
+                style: TextButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+                  minimumSize: Size.zero,
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                ),
                 child: const Text('All Requests', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700)),
               ),
             ],
           ),
         ),
         SizedBox(
-          height: 185,
+          height: 265,
           child: ListView.builder(
             scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(horizontal: 8),
+            padding: const EdgeInsets.symmetric(horizontal: 10),
             itemCount: _requests.take(4).length,
             itemBuilder: (context, index) {
               return SizedBox(
-                width: 310,
+                width: 325,
                 child: BloodRequestCard(
                   request: _requests[index],
+                  margin: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
                   onTap: () => widget.onTabChange?.call(3),
                 ),
               );

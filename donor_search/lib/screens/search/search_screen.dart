@@ -169,9 +169,12 @@ class _SearchScreenState extends State<SearchScreen> with SingleTickerProviderSt
                   children: [
                     Icon(Icons.location_city, color: AppColors.primary, size: 20),
                     SizedBox(width: 8),
-                    Text(
-                      'Hierarchical Search: India → State → District',
-                      style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.textPrimary),
+                    Expanded(
+                      child: Text(
+                        'Hierarchical Search: India → State → District',
+                        style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.textPrimary),
+                        overflow: TextOverflow.ellipsis,
+                      ),
                     ),
                   ],
                 ),
@@ -191,7 +194,13 @@ class _SearchScreenState extends State<SearchScreen> with SingleTickerProviderSt
                           children: [
                             Icon(Icons.flag_outlined, size: 18, color: AppColors.textSecondary),
                             SizedBox(width: 8),
-                            Text('Country: India', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
+                            Expanded(
+                              child: Text(
+                                'Country: India',
+                                style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
                           ],
                         ),
                       ),
@@ -393,16 +402,22 @@ class _SearchScreenState extends State<SearchScreen> with SingleTickerProviderSt
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Row(
-                      children: [
-                        Icon(Icons.gps_fixed, color: AppColors.primary, size: 20),
-                        SizedBox(width: 8),
-                        Text(
-                          'Live GPS Coordinates',
-                          style: TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: AppColors.textPrimary),
-                        ),
-                      ],
+                    const Expanded(
+                      child: Row(
+                        children: [
+                          Icon(Icons.gps_fixed, color: AppColors.primary, size: 20),
+                          SizedBox(width: 8),
+                          Flexible(
+                            child: Text(
+                              'Live GPS Coordinates',
+                              style: TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: AppColors.textPrimary),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
+                    const SizedBox(width: 8),
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                       decoration: BoxDecoration(

@@ -1,4 +1,4 @@
-# BloodConnect - Production-Ready Blood Donor Search App
+# 🩸 BloodConnect - Production-Ready Blood Donor Search App
 
 **BloodConnect** is a healthcare mobile application designed to connect voluntary blood donors and emergency patients in real-time.
 
@@ -11,7 +11,7 @@
 | **Mobile Frontend** | **Flutter** (Dart 3) | Material 3, Clean Architecture, Healthcare Design System |
 | **Backend** | **PHP 8.1 REST API** | PDO Prepared Statements, JSON Responses, CORS, Token Authentication |
 | **Database** | **MySQL** (XAMPP) | Database: `bloodconnect_db` (Port: 3305 / 3306) |
-| **Local Web Server**| **Apache** (XAMPP) | Running on Port 80 (`http://localhost/bloodconnect/`) |
+| **Local Web Server** | **Apache** (XAMPP) | Running on Port 80 (`http://localhost/bloodconnect/`) |
 | **Live Map** | **OpenStreetMap + Leaflet** | Keyless OpenStreetMap tiles with `flutter_map` & `latlong2` |
 
 ---
@@ -96,7 +96,7 @@ New-app/
 │   │   │   ├── settings/settings_screen.dart
 │   │   │   └── settings/donation_history_screen.dart
 │   │   ├── navigation/
-│   │   │   └── main_navigation_screen.dart# 5-Tab Bottom Navigation
+│   │   │   └── main_navigation_screen.dart  # 5-Tab Bottom Navigation
 │   │   └── main.dart                     # Theme & Entrypoint
 │   └── test/widget_test.dart
 │
@@ -108,36 +108,42 @@ New-app/
 
 ## 🗄️ Database Setup (XAMPP MySQL)
 
-1. **Start Apache and MySQL in XAMPP Control Panel**.
-   - Note: In your XAMPP installation, MySQL is configured on port **3305**.
-2. **Import the SQL database**:
-   Run the following in PowerShell:
-   ```powershell
-   # Automated import script:
-   Get-Content "e:\Bavan\Company-project\New-app\database\bloodconnect.sql" | & "C:\xampp\mysql\bin\mysql.exe" -u root -P 3305
-   ```
-   *The database `bloodconnect_db` is already created and populated with 10 sample donors in Madurai, Tamil Nadu!*
+1. **Start Apache and MySQL in the XAMPP Control Panel.**
+   - Note: In this XAMPP installation, MySQL is configured on port **3305**.
+2. **Import the SQL database** by running the following in PowerShell:
+
+```powershell
+# Automated import script
+Get-Content "e:\Bavan\Company-project\New-app\database\bloodconnect.sql" | & "C:\xampp\mysql\bin\mysql.exe" -u root -P 3305
+```
+
+> The database `bloodconnect_db` is created and populated with 10 sample donors in Madurai, Tamil Nadu.
 
 ---
 
 ## 🚀 Backend Deployment (XAMPP Apache)
 
 The backend is deployed to:
+
 ```text
 C:\xampp\htdocs\bloodconnect\backend
 ```
 
-### Base URLs by Client:
-- **Web Browser / Chrome**: `http://127.0.0.1/bloodconnect/backend`
-- **Android Emulator**: `http://10.0.2.2/bloodconnect/backend`
-- **Physical Android Phone on Wi-Fi**: `http://192.168.1.49/bloodconnect/backend`
+### Base URLs by Client
 
-### Test Endpoints:
+```text
+Web Browser / Chrome        : http://127.0.0.1/bloodconnect/backend
+Android Emulator            : http://10.0.2.2/bloodconnect/backend
+Physical Android (Wi-Fi)    : http://192.168.1.49/bloodconnect/backend
+```
+
+### Test Endpoints
+
 ```bash
 # Donors List
 curl http://127.0.0.1/bloodconnect/backend/api/donors/list.php
 
-# Nearby Donors (5 KM Radius around Madurai Center 9.9252, 78.1198)
+# Nearby Donors (5 KM radius around Madurai center 9.9252, 78.1198)
 curl "http://127.0.0.1/bloodconnect/backend/api/donors/nearby.php?latitude=9.9252&longitude=78.1198&radius=5"
 
 # Check Mobile
@@ -149,22 +155,19 @@ curl -X POST http://127.0.0.1/bloodconnect/backend/api/auth/check-mobile.php -d 
 ## 📱 Running the Flutter Application
 
 Navigate to the Flutter directory:
+
 ```bash
 cd e:\Bavan\Company-project\New-app\donor_search
 ```
 
-### Run on Chrome (Web):
 ```bash
+# Run on Chrome (Web)
 flutter run -d chrome
-```
 
-### Run on Connected Physical Android Device (`SM M315F`):
-```bash
+# Run on connected physical Android device (SM M315F)
 flutter run -d RZ8N70NAP5D
-```
 
-### Run on Edge:
-```bash
+# Run on Edge
 flutter run -d edge
 ```
 
@@ -172,43 +175,57 @@ flutter run -d edge
 
 ## 🩸 Core Features Implemented
 
-1. **Authentication Flow**:
-   - `+91` Indian mobile validation.
-   - Automatically checks `/api/auth/check-mobile.php`.
-   - Existing user -> Instantly logs in with session token.
-   - New user -> Pre-fills phone and opens full Registration form.
-   - Pre-seeded test accounts:
-     - `9876543210` (Karthik Raja - O+)
-     - `9876543211` (Priya Dharshini - A+)
-     - `9876543212` (Senthil Kumar - B+)
-2. **Dashboard (Home)**:
-   - Greeting, unread notifications badge, blood group avatar.
-   - Quick Blood Group filter chips (`A+`, `A-`, `B+`, `B-`, `O+`, `O-`, `AB+`, `AB-`).
-   - Live donor count & impact statistics.
-   - Emergency blood request carousel with contact family action.
-   - Nearby donor cards with direct **Call** (`tel:`) and **WhatsApp** (`wa.me`) links.
-3. **Manual Hierarchical Search**:
-   - Country: India -> State (`Tamil Nadu`, `Kerala`, `Karnataka`, etc.) -> District (`Madurai`, `Chennai`, `Coimbatore`, etc.) -> Area -> Pincode.
-   - Filter by Blood Group, Gender, Availability.
-4. **Live GPS Radius Search**:
-   - Real-time Haversine distance formula calculation.
-   - Interactive slider from 2 KM to 25 KM (5 KM default).
-   - Results sorted ascending by distance (e.g., `0.2 km away`, `1.4 km away`).
-5. **Interactive Live Map**:
-   - Built with **OpenStreetMap** (keyless, free, reliable).
-   - 5 KM translucent circular search zone overlay.
-   - **🔴 RED Marker**: Last donation date < 6 months ago (Recently Donated).
-   - **🟢 GREEN Marker**: Last donation date ≥ 6 months ago (Potentially Available).
-   - **📍 Blue Pin**: Current user location.
-   - Tapping any pin opens the **Interactive Donor Popup** with profile photo, name, verified badge, blood group, distance, last donation date, Call button, and WhatsApp button.
-6. **Emergency Blood Requests**:
-   - Active Requests and My Requests tabs.
-   - "Post Emergency Request" form (Patient Name, Blood Group, Units, Hospital, Address, Urgency: Critical/Urgent/Standard, Description).
-   - Automatically broadcasts notifications to matching blood group donors in the district!
-7. **Donation History**:
-   - Log past blood donations with hospital name, date, location, and notes.
-   - Automatically recalculates eligibility date (`+3 months`) and updates the donor's status in the MySQL database.
-8. **Settings & Dynamic Server Config**:
-   - In-app modal to change Backend API URL on the fly (useful when testing between Chrome, Android Emulator, and physical phones on Wi-Fi).
-#   B l o o d c o n n e c t  
- 
+### 1. Authentication Flow
+- `+91` Indian mobile number validation.
+- Automatically checks `/api/auth/check-mobile.php`.
+- **Existing user** → instantly logged in with a session token.
+- **New user** → phone pre-filled, full registration form opens.
+- Pre-seeded test accounts:
+
+```text
+9876543210  ->  Karthik Raja       (O+)
+9876543211  ->  Priya Dharshini    (A+)
+9876543212  ->  Senthil Kumar      (B+)
+```
+
+### 2. Dashboard (Home)
+- Greeting, unread notifications badge, blood group avatar.
+- Quick blood group filter chips: `A+`, `A-`, `B+`, `B-`, `O+`, `O-`, `AB+`, `AB-`.
+- Live donor count & impact statistics.
+- Emergency blood request carousel with contact-family action.
+- Nearby donor cards with direct **Call** (`tel:`) and **WhatsApp** (`wa.me`) links.
+
+### 3. Manual Hierarchical Search
+- India → State (`Tamil Nadu`, `Kerala`, `Karnataka`, etc.) → District (`Madurai`, `Chennai`, `Coimbatore`, etc.) → Area → Pincode.
+- Filter by Blood Group, Gender, Availability.
+
+### 4. Live GPS Radius Search
+- Real-time Haversine distance calculation.
+- Interactive slider from 2 KM to 25 KM (5 KM default).
+- Results sorted ascending by distance (e.g., `0.2 km away`, `1.4 km away`).
+
+### 5. Interactive Live Map
+- Built with **OpenStreetMap** (keyless, free, reliable).
+- 5 KM translucent circular search zone overlay.
+- 🔴 **Red marker**: last donation < 6 months ago (recently donated).
+- 🟢 **Green marker**: last donation ≥ 6 months ago (potentially available).
+- 📍 **Blue pin**: current user location.
+- Tapping a pin opens the donor popup with photo, name, verified badge, blood group, distance, last donation date, Call and WhatsApp buttons.
+
+### 6. Emergency Blood Requests
+- Active Requests and My Requests tabs.
+- "Post Emergency Request" form: Patient Name, Blood Group, Units, Hospital, Address, Urgency (Critical / Urgent / Standard), Description.
+- Automatically broadcasts notifications to matching blood group donors in the district.
+
+### 7. Donation History
+- Log past donations with hospital name, date, location, and notes.
+- Automatically recalculates eligibility date (`+3 months`) and updates the donor's status in MySQL.
+
+### 8. Settings & Dynamic Server Config
+- In-app modal to change the Backend API URL on the fly (useful when switching between Chrome, Android Emulator, and physical phones on Wi-Fi).
+
+---
+
+## 📄 License
+
+This project is for educational and demonstration purposes.

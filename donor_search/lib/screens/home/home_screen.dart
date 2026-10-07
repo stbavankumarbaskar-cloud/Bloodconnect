@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../../constants/app_colors.dart';
 import '../../constants/app_constants.dart';
 import '../../components/donor_card.dart';
@@ -70,7 +71,9 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final availableCount = _donors.where((d) => d.markerColor == 'green').length;
+    final availableCount = _donors
+        .where((d) => d.markerColor == 'green')
+        .length;
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -100,14 +103,21 @@ class _HomeScreenState extends State<HomeScreen> {
 
                 // Nearby Donors Header
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 18,
+                    vertical: 12,
+                  ),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Expanded(
                         child: Row(
                           children: [
-                            const Icon(Icons.people_alt_outlined, color: AppColors.primary, size: 20),
+                            const Icon(
+                              Icons.people_alt_outlined,
+                              color: AppColors.primary,
+                              size: 20,
+                            ),
                             const SizedBox(width: 8),
                             Flexible(
                               child: Text(
@@ -128,7 +138,10 @@ class _HomeScreenState extends State<HomeScreen> {
                       TextButton(
                         onPressed: () => widget.onTabChange?.call(1),
                         style: TextButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 6,
+                            vertical: 4,
+                          ),
                           minimumSize: Size.zero,
                           tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                         ),
@@ -150,11 +163,15 @@ class _HomeScreenState extends State<HomeScreen> {
                   const Padding(
                     padding: EdgeInsets.symmetric(vertical: 40),
                     child: Center(
-                      child: CircularProgressIndicator(color: AppColors.primary),
+                      child: CircularProgressIndicator(
+                        color: AppColors.primary,
+                      ),
                     ),
                   )
                 else if (_donors.isEmpty)
-                  _buildEmptyState('No donors found for this blood group nearby.')
+                  _buildEmptyState(
+                    'No donors found for this blood group nearby.',
+                  )
                 else
                   ListView.builder(
                     shrinkWrap: true,
@@ -167,7 +184,9 @@ class _HomeScreenState extends State<HomeScreen> {
                         onTap: () {
                           Navigator.push(
                             context,
-                            MaterialPageRoute(builder: (_) => ProfileScreen(donorId: donor.id)),
+                            MaterialPageRoute(
+                              builder: (_) => ProfileScreen(donorId: donor.id),
+                            ),
                           );
                         },
                       );
@@ -229,8 +248,14 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   ),
                   Text(
-                    _currentUser != null ? 'Hello, ${_currentUser!.fullName.split(' ').first}' : 'Find Donors Nearby',
-                    style: const TextStyle(fontSize: 12, color: AppColors.textSecondary, fontWeight: FontWeight.w500),
+                    _currentUser != null
+                        ? 'Hello, ${_currentUser!.fullName.split(' ').first}'
+                        : 'Find Donors Nearby',
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: AppColors.textSecondary,
+                      fontWeight: FontWeight.w500,
+                    ),
                   ),
                 ],
               ),
@@ -242,7 +267,11 @@ class _HomeScreenState extends State<HomeScreen> {
               Stack(
                 children: [
                   IconButton(
-                    icon: const Icon(Icons.notifications_none, color: AppColors.textPrimary, size: 26),
+                    icon: const Icon(
+                      Icons.notifications_none,
+                      color: AppColors.textPrimary,
+                      size: 26,
+                    ),
                     onPressed: () => _showNotificationsDialog(context),
                   ),
                   if (_unreadNotifications > 0)
@@ -257,7 +286,11 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                         child: Text(
                           '$_unreadNotifications',
-                          style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ),
                     ),
@@ -276,7 +309,11 @@ class _HomeScreenState extends State<HomeScreen> {
                   backgroundColor: AppColors.primarySoft,
                   child: Text(
                     _currentUser?.bloodGroup ?? 'O+',
-                    style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: AppColors.primary),
+                    style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w800,
+                      color: AppColors.primary,
+                    ),
                   ),
                 ),
               ),
@@ -326,7 +363,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                     SizedBox(height: 4),
                     Text(
-                      'Search by live location or manual area',
+                      'Search by location, district or blood group',
                       style: TextStyle(fontSize: 12, color: Colors.white70),
                     ),
                   ],
@@ -348,16 +385,27 @@ class _HomeScreenState extends State<HomeScreen> {
             children: [
               Expanded(
                 child: ElevatedButton.icon(
-                  onPressed: () => widget.onTabChange?.call(1), // Go to Search Tab
-                  icon: const Icon(Icons.location_searching, size: 16, color: AppColors.primary),
+                  onPressed: () =>
+                      widget.onTabChange?.call(1), // Go to Search Tab
+                  icon: const Icon(
+                    Icons.location_searching,
+                    size: 16,
+                    color: AppColors.primary,
+                  ),
                   label: const Text(
                     'Find Blood Donor',
-                    style: TextStyle(fontWeight: FontWeight.w800, fontSize: 14, color: AppColors.primary),
+                    style: TextStyle(
+                      fontWeight: FontWeight.w800,
+                      fontSize: 14,
+                      color: AppColors.primary,
+                    ),
                   ),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.white,
                     elevation: 0,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                     padding: const EdgeInsets.symmetric(vertical: 12),
                   ),
                 ),
@@ -365,15 +413,28 @@ class _HomeScreenState extends State<HomeScreen> {
               const SizedBox(width: 10),
               OutlinedButton.icon(
                 onPressed: () => widget.onTabChange?.call(2), // Go to Live Map
-                icon: const Icon(Icons.map_outlined, size: 16, color: Colors.white),
+                icon: const Icon(
+                  Icons.map_outlined,
+                  size: 16,
+                  color: Colors.white,
+                ),
                 label: const Text(
                   'Live Map',
-                  style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14, color: Colors.white),
+                  style: TextStyle(
+                    fontWeight: FontWeight.w700,
+                    fontSize: 14,
+                    color: Colors.white,
+                  ),
                 ),
                 style: OutlinedButton.styleFrom(
                   side: const BorderSide(color: Colors.white, width: 1.5),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 12,
+                  ),
                 ),
               ),
             ],
@@ -391,7 +452,11 @@ class _HomeScreenState extends State<HomeScreen> {
           padding: EdgeInsets.symmetric(horizontal: 18),
           child: Text(
             'Quick Blood Group Filter',
-            style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: AppColors.textPrimary),
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w700,
+              color: AppColors.textPrimary,
+            ),
           ),
         ),
         const SizedBox(height: 8),
@@ -423,7 +488,9 @@ class _HomeScreenState extends State<HomeScreen> {
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(10),
                     side: BorderSide(
-                      color: isSelected ? AppColors.primary : AppColors.cardBorder,
+                      color: isSelected
+                          ? AppColors.primary
+                          : AppColors.cardBorder,
                       width: 1.2,
                     ),
                   ),
@@ -449,9 +516,17 @@ class _HomeScreenState extends State<HomeScreen> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
-          _buildStatItem('Registered', '${_donors.length}', AppColors.textPrimary),
+          _buildStatItem(
+            'Registered',
+            '${_donors.length}',
+            AppColors.textPrimary,
+          ),
           Container(width: 1, height: 28, color: AppColors.divider),
-          _buildStatItem('Available Now', '$availableCount', AppColors.availableGreen),
+          _buildStatItem(
+            'Available Now',
+            '$availableCount',
+            AppColors.availableGreen,
+          ),
           Container(width: 1, height: 28, color: AppColors.divider),
           _buildStatItem('Requests', '${_requests.length}', AppColors.primary),
         ],
@@ -464,12 +539,20 @@ class _HomeScreenState extends State<HomeScreen> {
       children: [
         Text(
           value,
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: color),
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.w900,
+            color: color,
+          ),
         ),
         const SizedBox(height: 2),
         Text(
           label,
-          style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w500, color: AppColors.textSecondary),
+          style: const TextStyle(
+            fontSize: 11,
+            fontWeight: FontWeight.w500,
+            color: AppColors.textSecondary,
+          ),
         ),
       ],
     );
@@ -489,12 +572,20 @@ class _HomeScreenState extends State<HomeScreen> {
               const Expanded(
                 child: Row(
                   children: [
-                    Icon(Icons.emergency, color: AppColors.criticalUrgency, size: 20),
+                    Icon(
+                      Icons.emergency,
+                      color: AppColors.criticalUrgency,
+                      size: 20,
+                    ),
                     SizedBox(width: 8),
                     Flexible(
                       child: Text(
                         'Emergency Blood Requests',
-                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: AppColors.textPrimary),
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w800,
+                          color: AppColors.textPrimary,
+                        ),
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
@@ -502,13 +593,20 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
               TextButton(
-                onPressed: () => widget.onTabChange?.call(3), // Go to Requests Tab
+                onPressed: () =>
+                    widget.onTabChange?.call(3), // Go to Requests Tab
                 style: TextButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 6,
+                    vertical: 4,
+                  ),
                   minimumSize: Size.zero,
                   tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                 ),
-                child: const Text('All Requests', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700)),
+                child: const Text(
+                  'All Requests',
+                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700),
+                ),
               ),
             ],
           ),
@@ -524,7 +622,10 @@ class _HomeScreenState extends State<HomeScreen> {
                 width: 325,
                 child: BloodRequestCard(
                   request: _requests[index],
-                  margin: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+                  margin: const EdgeInsets.symmetric(
+                    horizontal: 6,
+                    vertical: 4,
+                  ),
                   onTap: () => widget.onTabChange?.call(3),
                 ),
               );
@@ -546,7 +647,10 @@ class _HomeScreenState extends State<HomeScreen> {
             Text(
               message,
               textAlign: TextAlign.center,
-              style: const TextStyle(fontSize: 14, color: AppColors.textSecondary),
+              style: const TextStyle(
+                fontSize: 14,
+                color: AppColors.textSecondary,
+              ),
             ),
           ],
         ),
@@ -605,10 +709,23 @@ class _HomeScreenState extends State<HomeScreen> {
                       return ListTile(
                         leading: CircleAvatar(
                           backgroundColor: AppColors.primarySoft,
-                          child: const Icon(Icons.notifications, color: AppColors.primary, size: 20),
+                          child: const Icon(
+                            Icons.notifications,
+                            color: AppColors.primary,
+                            size: 20,
+                          ),
                         ),
-                        title: Text(n.title, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14)),
-                        subtitle: Text(n.message, style: const TextStyle(fontSize: 12)),
+                        title: Text(
+                          n.title,
+                          style: const TextStyle(
+                            fontWeight: FontWeight.w700,
+                            fontSize: 14,
+                          ),
+                        ),
+                        subtitle: Text(
+                          n.message,
+                          style: const TextStyle(fontSize: 12),
+                        ),
                       );
                     },
                   ),

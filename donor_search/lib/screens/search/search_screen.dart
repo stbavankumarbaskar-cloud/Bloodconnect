@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../../constants/app_colors.dart';
 import '../../constants/app_constants.dart';
 import '../../components/donor_card.dart';
@@ -6,6 +7,7 @@ import '../../components/custom_button.dart';
 import '../../components/custom_text_field.dart';
 import '../../models/donor_model.dart';
 import '../../services/api_service.dart';
+import '../../services/storage_service.dart';
 import '../profile/profile_screen.dart';
 
 class SearchScreen extends StatefulWidget {
@@ -17,12 +19,10 @@ class SearchScreen extends StatefulWidget {
   State<SearchScreen> createState() => _SearchScreenState();
 }
 
-class _SearchScreenState extends State<SearchScreen> with SingleTickerProviderStateMixin {
-  late TabController _tabController;
-
-  // Manual Search State
-  String _selectedState = 'Tamil Nadu';
-  String _selectedDistrict = 'Madurai';
+class _SearchScreenState extends State<SearchScreen> {
+  // Manual Search State: Nullable so they display as watermark placeholders initially
+  String? _selectedState;
+  String? _selectedDistrict;
   final _areaController = TextEditingController();
   final _pincodeController = TextEditingController();
   String _selectedBloodGroup = 'ALL';
@@ -32,33 +32,47 @@ class _SearchScreenState extends State<SearchScreen> with SingleTickerProviderSt
   bool _isManualLoading = false;
   bool _manualSearched = false;
 
-  // Live Location Search State
-  final double _liveLat = 9.9252; // Default Madurai Center
-  final double _liveLng = 78.1198;
-  double _searchRadius = 5.0; // 5 KM Default
-  String _liveBloodGroup = 'ALL';
-  List<DonorModel> _liveResults = [];
-  bool _isLiveLoading = false;
-  bool _liveSearched = false;
-
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 2, vsync: this);
     if (widget.initialBloodGroup != null) {
       _selectedBloodGroup = widget.initialBloodGroup!;
-      _liveBloodGroup = widget.initialBloodGroup!;
     }
-    // Auto-perform initial live search
-    _handleLiveSearch();
+    _loadUser();
+  }
+
+  Future<void> _loadUser() async {
+    // Only search automatically if initial blood group was explicitly passed
+    if (widget.initialBloodGroup != null) {
+      _handleManualSearch();
+    }
+  }
+
+  @override
+  void reassemble() {
+    super.reassemble();
+    // Ensure in-memory state resets to watermark placeholders upon hot reload if not custom
+    if (_selectedState == 'Tamil Nadu') _selectedState = null;
+    if (_selectedDistrict == 'Madurai') _selectedDistrict = null;
   }
 
   @override
   void dispose() {
-    _tabController.dispose();
     _areaController.dispose();
     _pincodeController.dispose();
     super.dispose();
+  }
+
+  void _clearSearch() {
+    _areaController.clear();
+    _pincodeController.clear();
+    setState(() {
+      _selectedState = null;
+      _selectedDistrict = null;
+      _selectedBloodGroup = 'ALL';
+      _manualSearched = false;
+      _manualResults = [];
+    });
   }
 
   Future<void> _handleManualSearch() async {
@@ -68,15 +82,15 @@ class _SearchScreenState extends State<SearchScreen> with SingleTickerProviderSt
     });
 
     final filters = {
-      'state': _selectedState,
-      'district': _selectedDistrict,
+      'state': _selectedState ?? 'Tamil Nadu',
+      'district': _selectedDistrict ?? 'Madurai',
       'area': _areaController.text.trim(),
       'pincode': _pincodeController.text.trim(),
       'blood_group': _selectedBloodGroup,
       'gender': _selectedGender,
       'availability': _selectedAvailability,
-      'latitude': _liveLat,
-      'longitude': _liveLng,
+      'latitude': 9.9252,
+      'longitude': 78.1198,
     };
 
     final res = await ApiService.searchManual(filters);
@@ -87,28 +101,15 @@ class _SearchScreenState extends State<SearchScreen> with SingleTickerProviderSt
     });
   }
 
-  Future<void> _handleLiveSearch() async {
-    setState(() {
-      _isLiveLoading = true;
-      _liveSearched = true;
-    });
-
-    final res = await ApiService.searchLiveLocation(
-      latitude: _liveLat,
-      longitude: _liveLng,
-      radius: _searchRadius,
-      bloodGroup: _liveBloodGroup != 'ALL' ? _liveBloodGroup : null,
-    );
-
-    if (!mounted) return;
-    setState(() {
-      _liveResults = res.data ?? [];
-      _isLiveLoading = false;
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
+    final hasActiveFilters = _manualSearched ||
+        _selectedState != null ||
+        _selectedDistrict != null ||
+        _areaController.text.isNotEmpty ||
+        _pincodeController.text.isNotEmpty ||
+        _selectedBloodGroup != 'ALL';
+
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
@@ -119,34 +120,30 @@ class _SearchScreenState extends State<SearchScreen> with SingleTickerProviderSt
         backgroundColor: Colors.white,
         foregroundColor: AppColors.textPrimary,
         elevation: 0.5,
-        bottom: TabBar(
-          controller: _tabController,
-          labelColor: AppColors.primary,
-          unselectedLabelColor: AppColors.textSecondary,
-          indicatorColor: AppColors.primary,
-          indicatorWeight: 3,
-          labelStyle: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14),
-          tabs: const [
-            Tab(icon: Icon(Icons.pin_drop_outlined), text: 'Manual Location'),
-            Tab(icon: Icon(Icons.my_location), text: 'Live Location (GPS)'),
-          ],
-        ),
-      ),
-      body: TabBarView(
-        controller: _tabController,
-        children: [
-          _buildManualSearchTab(),
-          _buildLiveSearchTab(),
+        actions: [
+          if (hasActiveFilters)
+            TextButton.icon(
+              icon: const Icon(Icons.refresh, size: 18, color: AppColors.primary),
+              label: const Text(
+                'Clear',
+                style: TextStyle(
+                  fontWeight: FontWeight.w700,
+                  fontSize: 13,
+                  color: AppColors.primary,
+                ),
+              ),
+              onPressed: _clearSearch,
+            ),
         ],
       ),
+      body: _buildManualSearch(hasActiveFilters),
     );
   }
 
-  // ==========================================
-  // TAB 1: MANUAL LOCATION SEARCH
-  // ==========================================
-  Widget _buildManualSearchTab() {
-    final districts = AppConstants.stateDistricts[_selectedState] ?? ['Madurai'];
+  Widget _buildManualSearch(bool hasActiveFilters) {
+    final districts = _selectedState != null
+        ? (AppConstants.stateDistricts[_selectedState] ?? ['Madurai'])
+        : (AppConstants.stateDistricts['Tamil Nadu'] ?? ['Madurai']);
 
     return SingleChildScrollView(
       padding: const EdgeInsets.symmetric(vertical: 14),
@@ -165,17 +162,38 @@ class _SearchScreenState extends State<SearchScreen> with SingleTickerProviderSt
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Row(
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Icon(Icons.location_city, color: AppColors.primary, size: 20),
-                    SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        'Hierarchical Search: India → State → District',
-                        style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.textPrimary),
-                        overflow: TextOverflow.ellipsis,
-                      ),
+                    const Row(
+                      children: [
+                        Icon(Icons.location_city, color: AppColors.primary, size: 20),
+                        SizedBox(width: 8),
+                        Text(
+                          'Hierarchical Search: India → State → District',
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.textPrimary,
+                          ),
+                        ),
+                      ],
                     ),
+                    if (hasActiveFilters)
+                      InkWell(
+                        onTap: _clearSearch,
+                        child: const Padding(
+                          padding: EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                          child: Text(
+                            'Clear',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w700,
+                              color: AppColors.primary,
+                            ),
+                          ),
+                        ),
+                      ),
                   ],
                 ),
                 const SizedBox(height: 14),
@@ -184,7 +202,10 @@ class _SearchScreenState extends State<SearchScreen> with SingleTickerProviderSt
                   children: [
                     Expanded(
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 12,
+                        ),
                         decoration: BoxDecoration(
                           color: Colors.grey.shade100,
                           borderRadius: BorderRadius.circular(10),
@@ -192,12 +213,19 @@ class _SearchScreenState extends State<SearchScreen> with SingleTickerProviderSt
                         ),
                         child: const Row(
                           children: [
-                            Icon(Icons.flag_outlined, size: 18, color: AppColors.textSecondary),
+                            Icon(
+                              Icons.flag_outlined,
+                              size: 18,
+                              color: AppColors.textSecondary,
+                            ),
                             SizedBox(width: 8),
                             Expanded(
                               child: Text(
                                 'Country: India',
-                                style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
+                                style: TextStyle(
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 13,
+                                ),
                                 overflow: TextOverflow.ellipsis,
                               ),
                             ),
@@ -206,7 +234,7 @@ class _SearchScreenState extends State<SearchScreen> with SingleTickerProviderSt
                       ),
                     ),
                     const SizedBox(width: 10),
-                    // State Dropdown
+                    // State Dropdown with Watermark Hint
                     Expanded(
                       child: Container(
                         padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -218,20 +246,34 @@ class _SearchScreenState extends State<SearchScreen> with SingleTickerProviderSt
                         child: DropdownButtonHideUnderline(
                           child: DropdownButton<String>(
                             value: _selectedState,
+                            hint: const Text(
+                              'Tamil Nadu',
+                              style: TextStyle(
+                                fontSize: 13,
+                                color: AppColors.textMuted,
+                                fontWeight: FontWeight.w400,
+                              ),
+                            ),
                             isExpanded: true,
+                            icon: const Icon(Icons.arrow_drop_down, color: AppColors.textMuted),
                             items: AppConstants.indianStates.map((s) {
-                              return DropdownMenuItem(value: s, child: Text(s, style: const TextStyle(fontSize: 13)));
+                              return DropdownMenuItem(
+                                value: s,
+                                child: Text(
+                                  s,
+                                  style: const TextStyle(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w600,
+                                    color: AppColors.textPrimary,
+                                  ),
+                                ),
+                              );
                             }).toList(),
                             onChanged: (val) {
-                              if (val != null) {
-                                setState(() {
-                                  _selectedState = val;
-                                  final list = AppConstants.stateDistricts[val];
-                                  if (list != null && list.isNotEmpty) {
-                                    _selectedDistrict = list.first;
-                                  }
-                                });
-                              }
+                              setState(() {
+                                _selectedState = (val == null || val == 'Tamil Nadu') ? null : val;
+                                _selectedDistrict = null;
+                              });
                             },
                           ),
                         ),
@@ -240,7 +282,7 @@ class _SearchScreenState extends State<SearchScreen> with SingleTickerProviderSt
                   ],
                 ),
                 const SizedBox(height: 10),
-                // District Dropdown & Pincode
+                // District Dropdown with Watermark Hint & Pincode
                 Row(
                   children: [
                     Expanded(
@@ -253,13 +295,38 @@ class _SearchScreenState extends State<SearchScreen> with SingleTickerProviderSt
                         ),
                         child: DropdownButtonHideUnderline(
                           child: DropdownButton<String>(
-                            value: districts.contains(_selectedDistrict) ? _selectedDistrict : districts.first,
+                            value: (_selectedDistrict != null && districts.contains(_selectedDistrict))
+                                ? _selectedDistrict
+                                : null,
+                            hint: Text(
+                              (_selectedState != null && _selectedState != 'Tamil Nadu')
+                                  ? 'Select District'
+                                  : 'Madurai',
+                              style: const TextStyle(
+                                fontSize: 13,
+                                color: AppColors.textMuted,
+                                fontWeight: FontWeight.w400,
+                              ),
+                            ),
                             isExpanded: true,
+                            icon: const Icon(Icons.arrow_drop_down, color: AppColors.textMuted),
                             items: districts.map((d) {
-                              return DropdownMenuItem(value: d, child: Text(d, style: const TextStyle(fontSize: 13)));
+                              return DropdownMenuItem(
+                                value: d,
+                                child: Text(
+                                  d,
+                                  style: const TextStyle(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w600,
+                                    color: AppColors.textPrimary,
+                                  ),
+                                ),
+                              );
                             }).toList(),
                             onChanged: (val) {
-                              if (val != null) setState(() => _selectedDistrict = val);
+                              setState(() {
+                                _selectedDistrict = (val == null || val == 'Madurai') ? null : val;
+                              });
                             },
                           ),
                         ),
@@ -272,8 +339,14 @@ class _SearchScreenState extends State<SearchScreen> with SingleTickerProviderSt
                         keyboardType: TextInputType.number,
                         decoration: InputDecoration(
                           hintText: 'Pincode (e.g. 625020)',
-                          hintStyle: const TextStyle(fontSize: 12, color: AppColors.textMuted),
-                          contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                          hintStyle: const TextStyle(
+                            fontSize: 12,
+                            color: AppColors.textMuted,
+                          ),
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 12,
+                          ),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(10),
                             borderSide: const BorderSide(color: AppColors.cardBorder),
@@ -298,7 +371,11 @@ class _SearchScreenState extends State<SearchScreen> with SingleTickerProviderSt
                 // Blood Group Selector
                 const Text(
                   'Blood Group',
-                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.textPrimary),
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.textPrimary,
+                  ),
                 ),
                 const SizedBox(height: 6),
                 Wrap(
@@ -323,11 +400,39 @@ class _SearchScreenState extends State<SearchScreen> with SingleTickerProviderSt
                   }).toList(),
                 ),
                 const SizedBox(height: 18),
-                CustomButton(
-                  text: 'Search Donors',
-                  icon: Icons.search,
-                  isLoading: _isManualLoading,
-                  onPressed: _handleManualSearch,
+
+                // Button Row: Clear Option + Search Donors
+                Row(
+                  children: [
+                    if (hasActiveFilters) ...[
+                      OutlinedButton.icon(
+                        icon: const Icon(Icons.refresh, size: 18, color: AppColors.textSecondary),
+                        label: const Text(
+                          'Clear',
+                          style: TextStyle(
+                            fontWeight: FontWeight.w700,
+                            fontSize: 13,
+                            color: AppColors.textSecondary,
+                          ),
+                        ),
+                        style: OutlinedButton.styleFrom(
+                          side: BorderSide(color: Colors.grey.shade300),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 13),
+                        ),
+                        onPressed: _clearSearch,
+                      ),
+                      const SizedBox(width: 10),
+                    ],
+                    Expanded(
+                      child: CustomButton(
+                        text: 'Search Donors',
+                        icon: Icons.search,
+                        isLoading: _isManualLoading,
+                        onPressed: _handleManualSearch,
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
@@ -338,21 +443,54 @@ class _SearchScreenState extends State<SearchScreen> with SingleTickerProviderSt
           if (_isManualLoading)
             const Padding(
               padding: EdgeInsets.symmetric(vertical: 40),
-              child: Center(child: CircularProgressIndicator(color: AppColors.primary)),
+              child: Center(
+                child: CircularProgressIndicator(color: AppColors.primary),
+              ),
             )
           else if (_manualSearched)
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 6),
-                  child: Text(
-                    'Search Results (${_manualResults.length} Found)',
-                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: AppColors.textPrimary),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 18,
+                    vertical: 6,
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'Search Results (${_manualResults.length} Found)',
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w800,
+                          color: AppColors.textPrimary,
+                        ),
+                      ),
+                      TextButton.icon(
+                        icon: const Icon(Icons.close, size: 16, color: AppColors.primary),
+                        label: const Text(
+                          'Clear Results',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.primary,
+                          ),
+                        ),
+                        style: TextButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          minimumSize: Size.zero,
+                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        ),
+                        onPressed: _clearSearch,
+                      ),
+                    ],
                   ),
                 ),
                 if (_manualResults.isEmpty)
-                  _buildNoResults('No donors found matching your exact criteria. Try broadening your area or blood group.')
+                  _buildNoResults(
+                    'No donors found matching your exact criteria. Try broadening your area or blood group.',
+                  )
                 else
                   ListView.builder(
                     shrinkWrap: true,
@@ -365,182 +503,57 @@ class _SearchScreenState extends State<SearchScreen> with SingleTickerProviderSt
                         onTap: () {
                           Navigator.push(
                             context,
-                            MaterialPageRoute(builder: (_) => ProfileScreen(donorId: donor.id)),
-                          );
-                        },
-                      );
-                    },
-                  ),
-              ],
-            ),
-        ],
-      ),
-    );
-  }
-
-  // ==========================================
-  // TAB 2: LIVE LOCATION SEARCH (GPS)
-  // ==========================================
-  Widget _buildLiveSearchTab() {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.symmetric(vertical: 14),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // GPS Controls Card
-          Container(
-            margin: const EdgeInsets.symmetric(horizontal: 16),
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: AppColors.cardBorder),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Expanded(
-                      child: Row(
-                        children: [
-                          Icon(Icons.gps_fixed, color: AppColors.primary, size: 20),
-                          SizedBox(width: 8),
-                          Flexible(
-                            child: Text(
-                              'Live GPS Coordinates',
-                              style: TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: AppColors.textPrimary),
-                              overflow: TextOverflow.ellipsis,
+                            MaterialPageRoute(
+                              builder: (_) => ProfileScreen(donorId: donor.id),
                             ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: AppColors.availableGreenLight,
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                      child: const Text(
-                        'GPS Active',
-                        style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: AppColors.availableGreen),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 6),
-                Text(
-                  'Center: ${_liveLat.toStringAsFixed(4)}° N, ${_liveLng.toStringAsFixed(4)}° E (Madurai)',
-                  style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
-                ),
-                const SizedBox(height: 16),
-
-                // Radius Slider
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Text(
-                      'Search Radius Zone',
-                      style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.textPrimary),
-                    ),
-                    Text(
-                      '${_searchRadius.toInt()} KM',
-                      style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w900, color: AppColors.primary),
-                    ),
-                  ],
-                ),
-                Slider(
-                  value: _searchRadius,
-                  min: 2.0,
-                  max: 25.0,
-                  divisions: 23,
-                  activeColor: AppColors.primary,
-                  inactiveColor: AppColors.primaryLight,
-                  onChanged: (val) {
-                    setState(() => _searchRadius = val);
-                  },
-                  onChangeEnd: (_) => _handleLiveSearch(),
-                ),
-                const SizedBox(height: 10),
-
-                // Blood Group Chips
-                Wrap(
-                  spacing: 6,
-                  runSpacing: 6,
-                  children: ['ALL', ...AppConstants.bloodGroups].map((bg) {
-                    final isSel = _liveBloodGroup == bg;
-                    return ChoiceChip(
-                      label: Text(
-                        bg,
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w700,
-                          color: isSel ? Colors.white : AppColors.textPrimary,
-                        ),
-                      ),
-                      selected: isSel,
-                      selectedColor: AppColors.primary,
-                      backgroundColor: Colors.white,
-                      onSelected: (_) {
-                        setState(() => _liveBloodGroup = bg);
-                        _handleLiveSearch();
-                      },
-                    );
-                  }).toList(),
-                ),
-                const SizedBox(height: 16),
-                CustomButton(
-                  text: 'Use My Live Location',
-                  icon: Icons.my_location,
-                  isLoading: _isLiveLoading,
-                  onPressed: _handleLiveSearch,
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 16),
-
-          // Results List (Sorted by Distance)
-          if (_isLiveLoading)
-            const Padding(
-              padding: EdgeInsets.symmetric(vertical: 40),
-              child: Center(child: CircularProgressIndicator(color: AppColors.primary)),
-            )
-          else if (_liveSearched)
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 6),
-                  child: Text(
-                    'Donors Near You (${_liveResults.length} within ${_searchRadius.toInt()} KM)',
-                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: AppColors.textPrimary),
-                  ),
-                ),
-                if (_liveResults.isEmpty)
-                  _buildNoResults('No donors found within ${_searchRadius.toInt()} KM. Try increasing the search radius slider.')
-                else
-                  ListView.builder(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    itemCount: _liveResults.length,
-                    itemBuilder: (context, index) {
-                      final donor = _liveResults[index];
-                      return DonorCard(
-                        donor: donor,
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(builder: (_) => ProfileScreen(donorId: donor.id)),
                           );
                         },
                       );
                     },
                   ),
               ],
+            )
+          else
+            // Initial Clean State (No Unnecessary Results Shown)
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 36),
+              child: Center(
+                child: Column(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: const BoxDecoration(
+                        color: AppColors.primarySoft,
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        Icons.person_search_outlined,
+                        size: 38,
+                        color: AppColors.primary,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    const Text(
+                      'Ready to Search',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w800,
+                        color: AppColors.textPrimary,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    const Text(
+                      'Select your location and blood group, then tap "Search Donors" to view matching donors.',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: AppColors.textSecondary,
+                        height: 1.4,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ),
         ],
       ),
@@ -558,7 +571,11 @@ class _SearchScreenState extends State<SearchScreen> with SingleTickerProviderSt
             Text(
               message,
               textAlign: TextAlign.center,
-              style: const TextStyle(fontSize: 13, color: AppColors.textSecondary, height: 1.4),
+              style: const TextStyle(
+                fontSize: 13,
+                color: AppColors.textSecondary,
+                height: 1.4,
+              ),
             ),
           ],
         ),

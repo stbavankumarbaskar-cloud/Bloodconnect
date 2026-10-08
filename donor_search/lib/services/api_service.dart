@@ -148,6 +148,25 @@ class ApiService {
     }
   }
 
+  // Donors: Get Specific Donor Details by ID
+  static Future<ApiResponse<Map<String, dynamic>>> getDonorDetails(int id) async {
+    try {
+      final uri = Uri.parse('${ApiEndpoints.donorDetails}?id=$id');
+      final response = await http.get(uri, headers: await _getHeaders());
+      final json = jsonDecode(response.body);
+      if (json['success'] == true && json['data'] != null) {
+        return ApiResponse(
+          success: true,
+          message: json['message'] ?? '',
+          data: json['data'] as Map<String, dynamic>,
+        );
+      }
+      return ApiResponse(success: false, message: json['message'] ?? 'Donor not found');
+    } catch (e) {
+      return ApiResponse(success: false, message: 'Error loading donor details: $e');
+    }
+  }
+
   // Donors: Nearby by Coordinates & Radius
   static Future<ApiResponse<List<DonorModel>>> getNearbyDonors({
     required double latitude,

@@ -85,7 +85,7 @@ try {
     $insertNotif = $db->prepare("INSERT INTO notifications (user_id, title, message, type) VALUES (?, ?, ?, ?)");
     $insertNotif->execute([
         $userId,
-        'Welcome to BloodConnect!',
+        'Welcome to BloodBridge!',
         'Thank you for registering as a blood donor. Together we save lives!',
         'welcome'
     ]);
@@ -103,7 +103,7 @@ try {
 
     $user['eligibility'] = calculateDonorEligibility($user['last_donation_date']);
 
-    sendResponse(true, 'Registration successful! You are now part of BloodConnect.', [
+    sendResponse(true, 'Registration successful! You are now part of BloodBridge.', [
         'token' => $token,
         'user' => $user
     ], 201);

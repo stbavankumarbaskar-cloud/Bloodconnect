@@ -110,7 +110,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 const SizedBox(height: 24),
                 const Center(
                   child: Text(
-                    'Welcome to BloodConnect',
+                    'Welcome to BloodBridge',
                     style: TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.w800,

@@ -2,15 +2,18 @@ import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../constants/app_colors.dart';
 import '../../models/user_model.dart';
+import '../../models/donor_model.dart';
 import '../../models/history_model.dart';
 import '../../services/api_service.dart';
+import '../../services/storage_service.dart';
 import 'edit_profile_screen.dart';
 import '../settings/donation_history_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   final int? donorId;
+  final DonorModel? donor;
 
-  const ProfileScreen({super.key, this.donorId});
+  const ProfileScreen({super.key, this.donorId, this.donor});
 
   @override
   State<ProfileScreen> createState() => _ProfileScreenState();
@@ -25,52 +28,91 @@ class _ProfileScreenState extends State<ProfileScreen> {
   @override
   void initState() {
     super.initState();
-    _isOwnProfile = (widget.donorId == null);
     _loadProfile();
   }
 
   Future<void> _loadProfile() async {
-    setState(() => _isLoading = true);
+    final currentUser = await StorageService.getUser();
+    final targetId = widget.donor?.id ?? widget.donorId;
 
+    // Check if viewing own profile
+    _isOwnProfile = (targetId == null || (currentUser != null && targetId == currentUser.id));
+
+    // If viewing own profile
     if (_isOwnProfile) {
+      if (currentUser != null) {
+        setState(() {
+          _profile = currentUser;
+          _isLoading = false;
+        });
+      }
       final res = await ApiService.getProfile();
       final histRes = await ApiService.getHistory();
       if (!mounted) return;
       setState(() {
-        _profile = res.data;
+        if (res.success && res.data != null) {
+          _profile = res.data;
+        }
         _history = histRes.data ?? [];
         _isLoading = false;
       });
-    } else {
-      // Fetch specific donor
-      final res = await ApiService.getDonors();
-      final donor = res.data?.firstWhere((d) => d.id == widget.donorId, orElse: () => res.data!.first);
-      if (!mounted) return;
+      return;
+    }
 
-      if (donor != null) {
-        _profile = UserModel(
-          id: donor.id,
-          fullName: donor.fullName,
-          mobileNumber: donor.mobileNumber,
-          email: donor.email,
-          gender: donor.gender,
-          bloodGroup: donor.bloodGroup,
-          address: donor.address,
-          state: donor.state,
-          district: donor.district,
-          area: donor.area,
-          pincode: donor.pincode,
-          whatsappNumber: donor.whatsappNumber,
-          lastDonationDate: donor.lastDonationDate,
-          availabilityStatus: donor.availabilityStatus,
-          isVerified: donor.isVerified,
-          eligibility: {
-            'is_eligible': donor.markerColor == 'green',
-            'marker_color': donor.markerColor,
-            'status_label': donor.statusLabel,
-          },
-        );
+    // If viewing another donor's profile:
+    // If a DonorModel was passed directly, show it immediately so there is zero delay!
+    if (widget.donor != null) {
+      final d = widget.donor!;
+      _profile = UserModel(
+        id: d.id,
+        fullName: d.fullName,
+        mobileNumber: d.mobileNumber,
+        email: d.email,
+        gender: d.gender,
+        bloodGroup: d.bloodGroup,
+        address: d.address,
+        state: d.state,
+        district: d.district,
+        area: d.area,
+        pincode: d.pincode,
+        latitude: d.latitude,
+        longitude: d.longitude,
+        whatsappNumber: d.whatsappNumber,
+        lastDonationDate: d.lastDonationDate,
+        availabilityStatus: d.availabilityStatus,
+        isVerified: d.isVerified,
+        profilePhoto: d.profilePhoto,
+        eligibility: {
+          'is_eligible': d.markerColor == 'green',
+          'marker_color': d.markerColor,
+          'status_label': d.statusLabel,
+        },
+      );
+      _isLoading = false;
+      if (mounted) setState(() {});
+    }
+
+    if (targetId != null) {
+      final res = await ApiService.getDonorDetails(targetId);
+      if (!mounted) return;
+      if (res.success && res.data != null) {
+        final data = res.data!;
+        final user = UserModel.fromJson(data);
+        List<DonationHistoryModel> history = [];
+        if (data['history'] is List) {
+          history = (data['history'] as List)
+              .map((h) => DonationHistoryModel.fromJson(h))
+              .toList();
+        }
+        setState(() {
+          _profile = user;
+          _history = history;
+          _isLoading = false;
+        });
+      } else {
+        setState(() => _isLoading = false);
       }
+    } else {
       setState(() => _isLoading = false);
     }
   }
@@ -86,7 +128,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Future<void> _openWhatsApp(String phone, String name) async {
     var cleanPhone = phone.replaceAll(RegExp(r'[^0-9]'), '');
     if (cleanPhone.length == 10) cleanPhone = '91$cleanPhone';
-    final msg = Uri.encodeComponent('Hello $name, I found your profile on BloodConnect. We need blood urgently.');
+    final msg = Uri.encodeComponent('Hello $name, I found your profile on BloodBridge. We need blood urgently.');
     final uri = Uri.parse('https://wa.me/$cleanPhone?text=$msg');
     if (await canLaunchUrl(uri)) {
       await launchUrl(uri, mode: LaunchMode.externalApplication);

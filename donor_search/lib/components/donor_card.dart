@@ -3,6 +3,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../constants/app_colors.dart';
 import '../models/donor_model.dart';
+import '../screens/profile/profile_screen.dart';
 
 class DonorCard extends StatelessWidget {
   final DonorModel donor;
@@ -24,7 +25,7 @@ class DonorCard extends StatelessWidget {
       cleanPhone = '91$cleanPhone';
     }
     final message = Uri.encodeComponent(
-      'Hello $name, I found your profile on BloodConnect. We urgently need blood. Can you please help?',
+      'Hello $name, I found your profile on BloodBridge. We urgently need blood. Can you please help?',
     );
     final uri = Uri.parse('https://wa.me/$cleanPhone?text=$message');
     if (await canLaunchUrl(uri)) {
@@ -59,7 +60,15 @@ class DonorCard extends StatelessWidget {
       child: Material(
         color: Colors.transparent,
         child: InkWell(
-          onTap: onTap,
+          onTap: onTap ??
+              () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => ProfileScreen(donor: donor, donorId: donor.id),
+                  ),
+                );
+              },
           borderRadius: BorderRadius.circular(16),
           child: Padding(
             padding: const EdgeInsets.all(14),

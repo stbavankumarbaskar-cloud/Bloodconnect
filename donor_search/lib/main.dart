@@ -11,16 +11,16 @@ void main() {
       statusBarIconBrightness: Brightness.dark,
     ),
   );
-  runApp(const BloodConnectApp());
+  runApp(const BloodBridgeApp());
 }
 
-class BloodConnectApp extends StatelessWidget {
-  const BloodConnectApp({super.key});
+class BloodBridgeApp extends StatelessWidget {
+  const BloodBridgeApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'BloodConnect',
+      title: 'BloodBridge',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         useMaterial3: true,

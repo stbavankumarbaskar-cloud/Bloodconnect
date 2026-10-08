@@ -1,5 +1,5 @@
 class AppConstants {
-  static const String appName = 'BloodConnect';
+  static const String appName = 'BloodBridge';
   static const String appTagline = 'Connecting Life Savers in Real-Time';
 
   static const List<String> bloodGroups = [

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../../constants/app_colors.dart';
-import '../../constants/api_endpoints.dart';
 import '../../models/user_model.dart';
 import '../../services/api_service.dart';
 import '../../services/storage_service.dart';
@@ -31,64 +30,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
     setState(() => _user = user);
   }
 
-  void _showServerConfigDialog() {
-    final ctrl = TextEditingController(text: ApiEndpoints.baseUrl);
-    showDialog(
-      context: context,
-      builder: (ctx) {
-        return AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          title: const Text('Backend API Server', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 18)),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                'Configure the PHP REST API URL for your environment:',
-                style: TextStyle(fontSize: 13, color: AppColors.textSecondary),
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: ctrl,
-                decoration: const InputDecoration(
-                  labelText: 'Base API URL',
-                  border: OutlineInputBorder(),
-                  contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-                ),
-              ),
-              const SizedBox(height: 10),
-              const Text(
-                '• Chrome / Web: http://127.0.0.1/bloodconnect/backend\n'
-                '• Android Emulator: http://10.0.2.2/bloodconnect/backend\n'
-                '• Physical Phone on Wi-Fi: http://192.168.1.49/bloodconnect/backend',
-                style: TextStyle(fontSize: 11, color: AppColors.textMuted, height: 1.4),
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(ctx),
-              child: const Text('Cancel'),
-            ),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
-              onPressed: () {
-                final url = ctrl.text.trim();
-                if (url.isNotEmpty) {
-                  ApiEndpoints.setCustomBaseUrl(url);
-                  Navigator.pop(ctx);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Server URL set to: $url'), backgroundColor: AppColors.availableGreen),
-                  );
-                }
-              },
-              child: const Text('Apply', style: TextStyle(color: Colors.white)),
-            ),
-          ],
-        );
-      },
-    );
-  }
 
   void _showAboutDialog() {
     showDialog(
@@ -100,11 +41,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
             children: [
               Icon(Icons.water_drop, color: AppColors.primary),
               SizedBox(width: 8),
-              Text('BloodConnect v1.0.0', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 18)),
+              Text('BloodBridge v1.0.0', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 18)),
             ],
           ),
           content: const Text(
-            'BloodConnect is a real-time healthcare blood donor search platform connecting donors and patients across India.\n\n'
+            'BloodBridge is a real-time healthcare blood donor search platform connecting donors and patients across India.\n\n'
             '• Frontend: Flutter\n'
             '• Backend: PHP REST API\n'
             '• Database: XAMPP MySQL (bloodconnect_db)\n'
@@ -130,7 +71,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       builder: (ctx) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: const Text('Log Out', style: TextStyle(fontWeight: FontWeight.w800)),
-        content: const Text('Are you sure you want to log out of BloodConnect?'),
+        content: const Text('Are you sure you want to log out of BloodBridge?'),
         actions: [
           TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
           ElevatedButton(
@@ -243,16 +184,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
               },
             ),
 
-            const SizedBox(height: 16),
-            // Server & Environment Section
-            _buildSectionHeader('API & Connection'),
-            _buildTile(
-              icon: Icons.dns_outlined,
-              title: 'XAMPP Backend Server',
-              subtitle: ApiEndpoints.baseUrl,
-              trailing: const Icon(Icons.settings, size: 20, color: AppColors.primary),
-              onTap: _showServerConfigDialog,
-            ),
 
             const SizedBox(height: 16),
             // App Settings
@@ -277,7 +208,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             _buildSectionHeader('About & Account'),
             _buildTile(
               icon: Icons.info_outline,
-              title: 'About BloodConnect',
+              title: 'About BloodBridge',
               subtitle: 'Version 1.0.0 (Production Build)',
               onTap: _showAboutDialog,
             ),

@@ -167,27 +167,26 @@ class _SearchScreenState extends State<SearchScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Row(
-                      children: [
-                        Icon(
-                          Icons.location_city,
-                          color: AppColors.primary,
-                          size: 20,
-                        ),
-                        SizedBox(width: 8),
-                        Text(
-                          'Hierarchical Search: India → State → District',
-                          style: TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w700,
-                            color: AppColors.textPrimary,
-                          ),
-                        ),
-                      ],
+                    const Icon(
+                      Icons.location_city,
+                      color: AppColors.primary,
+                      size: 20,
                     ),
-                    if (hasActiveFilters)
+                    const SizedBox(width: 8),
+                    const Expanded(
+                      child: Text(
+                        'Location: India → State → District',
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.textPrimary,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    if (hasActiveFilters) ...[
+                      const SizedBox(width: 8),
                       InkWell(
                         onTap: _clearSearch,
                         child: const Padding(
@@ -205,6 +204,7 @@ class _SearchScreenState extends State<SearchScreen> {
                           ),
                         ),
                       ),
+                    ],
                   ],
                 ),
                 const SizedBox(height: 14),
@@ -551,7 +551,7 @@ class _SearchScreenState extends State<SearchScreen> {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (_) => ProfileScreen(donorId: donor.id),
+                              builder: (_) => ProfileScreen(donor: donor, donorId: donor.id),
                             ),
                           );
                         },

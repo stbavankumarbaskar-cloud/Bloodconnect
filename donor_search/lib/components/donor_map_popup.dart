@@ -24,7 +24,7 @@ class DonorMapPopup extends StatelessWidget {
       cleanPhone = '91$cleanPhone';
     }
     final message = Uri.encodeComponent(
-      'Hello $name, I found your location on the BloodConnect Map. We urgently need blood. Can you please help?',
+      'Hello $name, I found your location on the BloodBridge Map. We urgently need blood. Can you please help?',
     );
     final uri = Uri.parse('https://wa.me/$cleanPhone?text=$message');
     if (await canLaunchUrl(uri)) {
@@ -261,7 +261,7 @@ class DonorMapPopup extends StatelessWidget {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (_) => ProfileScreen(donorId: donor.id),
+                    builder: (_) => ProfileScreen(donor: donor, donorId: donor.id),
                   ),
                 );
               },

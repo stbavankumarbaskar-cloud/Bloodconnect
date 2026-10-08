@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
+
 import '../constants/app_colors.dart';
 import '../models/donor_model.dart';
 
@@ -7,11 +8,7 @@ class DonorCard extends StatelessWidget {
   final DonorModel donor;
   final VoidCallback? onTap;
 
-  const DonorCard({
-    super.key,
-    required this.donor,
-    this.onTap,
-  });
+  const DonorCard({super.key, required this.donor, this.onTap});
 
   Future<void> _makeCall(String phone) async {
     final cleanPhone = phone.replaceAll(RegExp(r'[^0-9+]'), '');
@@ -38,8 +35,12 @@ class DonorCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isGreen = donor.markerColor == 'green';
-    final statusColor = isGreen ? AppColors.availableGreen : AppColors.recentlyDonatedRed;
-    final statusBg = isGreen ? AppColors.availableGreenLight : AppColors.recentlyDonatedRedLight;
+    final statusColor = isGreen
+        ? AppColors.availableGreen
+        : AppColors.recentlyDonatedRed;
+    final statusBg = isGreen
+        ? AppColors.availableGreenLight
+        : AppColors.recentlyDonatedRedLight;
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
@@ -74,10 +75,7 @@ class DonorCard extends StatelessWidget {
                       height: 52,
                       decoration: BoxDecoration(
                         gradient: LinearGradient(
-                          colors: [
-                            AppColors.primary,
-                            AppColors.primaryDark,
-                          ],
+                          colors: [AppColors.primary, AppColors.primaryDark],
                           begin: Alignment.topLeft,
                           end: Alignment.bottomRight,
                         ),
@@ -158,7 +156,10 @@ class DonorCard extends StatelessWidget {
                             runSpacing: 4,
                             children: [
                               Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                  vertical: 3,
+                                ),
                                 decoration: BoxDecoration(
                                   color: statusBg,
                                   borderRadius: BorderRadius.circular(8),
@@ -188,7 +189,10 @@ class DonorCard extends StatelessWidget {
                               ),
                               if (donor.distanceKm != null)
                                 Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 8,
+                                    vertical: 3,
+                                  ),
                                   decoration: BoxDecoration(
                                     color: Colors.blue.withValues(alpha: 0.1),
                                     borderRadius: BorderRadius.circular(8),
@@ -218,7 +222,11 @@ class DonorCard extends StatelessWidget {
                     Expanded(
                       child: OutlinedButton.icon(
                         onPressed: () => _makeCall(donor.mobileNumber),
-                        icon: const Icon(Icons.call, size: 16, color: AppColors.callBlue),
+                        icon: const Icon(
+                          Icons.call,
+                          size: 16,
+                          color: AppColors.callBlue,
+                        ),
                         label: const Text(
                           'Call',
                           style: TextStyle(
@@ -230,7 +238,9 @@ class DonorCard extends StatelessWidget {
                         style: OutlinedButton.styleFrom(
                           side: const BorderSide(color: Color(0xFFBBDEFB)),
                           backgroundColor: const Color(0xFFF1F8FE),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
                           padding: const EdgeInsets.symmetric(vertical: 8),
                         ),
                       ),
@@ -238,8 +248,15 @@ class DonorCard extends StatelessWidget {
                     const SizedBox(width: 8),
                     Expanded(
                       child: ElevatedButton.icon(
-                        onPressed: () => _openWhatsApp(donor.whatsappNumber ?? donor.mobileNumber, donor.fullName),
-                        icon: const Icon(Icons.chat_bubble_outline, size: 16, color: Colors.white),
+                        onPressed: () => _openWhatsApp(
+                          donor.whatsappNumber ?? donor.mobileNumber,
+                          donor.fullName,
+                        ),
+                        icon: const Icon(
+                          Icons.chat_bubble_outline,
+                          size: 16,
+                          color: Colors.white,
+                        ),
                         label: const Text(
                           'WhatsApp',
                           style: TextStyle(
@@ -251,7 +268,9 @@ class DonorCard extends StatelessWidget {
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppColors.whatsappGreen,
                           elevation: 0,
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
                           padding: const EdgeInsets.symmetric(vertical: 8),
                         ),
                       ),

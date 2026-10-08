@@ -38,6 +38,32 @@ class _RequestsScreenState extends State<RequestsScreen> with SingleTickerProvid
     });
   }
 
+  Future<void> _handleStatusUpdate(BloodRequestModel req, String newStatus) async {
+    final res = await ApiService.updateRequestStatus(
+      requestId: req.id,
+      status: newStatus,
+    );
+
+    if (!mounted) return;
+
+    if (res.success) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(res.message),
+          backgroundColor: AppColors.availableGreen,
+        ),
+      );
+      _loadRequests();
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(res.message),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
   @override
   void dispose() {
     _tabController.dispose();
@@ -56,6 +82,13 @@ class _RequestsScreenState extends State<RequestsScreen> with SingleTickerProvid
         backgroundColor: Colors.white,
         foregroundColor: AppColors.textPrimary,
         elevation: 0.5,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.refresh),
+            tooltip: 'Refresh Requests',
+            onPressed: _loadRequests,
+          ),
+        ],
         bottom: TabBar(
           controller: _tabController,
           labelColor: AppColors.primary,
@@ -76,7 +109,9 @@ class _RequestsScreenState extends State<RequestsScreen> with SingleTickerProvid
             MaterialPageRoute(builder: (_) => const CreateRequestScreen()),
           );
           if (created == true) {
-            _loadRequests();
+            await _loadRequests();
+            // Automatically switch to My Requests tab to see the newly posted request
+            _tabController.animateTo(1);
           }
         },
         backgroundColor: AppColors.primary,
@@ -91,29 +126,44 @@ class _RequestsScreenState extends State<RequestsScreen> with SingleTickerProvid
           : TabBarView(
               controller: _tabController,
               children: [
-                _buildRequestList(_allRequests, 'No active blood requests at this moment.'),
-                _buildRequestList(_myRequests, 'You have not posted any blood requests yet.'),
+                _buildRequestList(
+                  _allRequests,
+                  'No active blood requests at this moment.',
+                  isMyList: false,
+                ),
+                _buildRequestList(
+                  _myRequests,
+                  'You have not posted any blood requests yet.\nTap "+ Create Request" below to post one.',
+                  isMyList: true,
+                ),
               ],
             ),
     );
   }
 
-  Widget _buildRequestList(List<BloodRequestModel> list, String emptyMsg) {
+  Widget _buildRequestList(List<BloodRequestModel> list, String emptyMsg, {required bool isMyList}) {
     if (list.isEmpty) {
-      return Center(
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(Icons.inventory_2_outlined, size: 54, color: Colors.grey.shade400),
-              const SizedBox(height: 14),
-              Text(
-                emptyMsg,
-                textAlign: TextAlign.center,
-                style: const TextStyle(fontSize: 14, color: AppColors.textSecondary),
-              ),
-            ],
+      return RefreshIndicator(
+        onRefresh: _loadRequests,
+        color: AppColors.primary,
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          child: Container(
+            height: MediaQuery.of(context).size.height * 0.6,
+            alignment: Alignment.center,
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.inventory_2_outlined, size: 54, color: Colors.grey.shade400),
+                const SizedBox(height: 14),
+                Text(
+                  emptyMsg,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(fontSize: 14, color: AppColors.textSecondary, height: 1.4),
+                ),
+              ],
+            ),
           ),
         ),
       );
@@ -126,7 +176,14 @@ class _RequestsScreenState extends State<RequestsScreen> with SingleTickerProvid
         padding: const EdgeInsets.symmetric(vertical: 12),
         itemCount: list.length,
         itemBuilder: (context, index) {
-          return BloodRequestCard(request: list[index]);
+          final req = list[index];
+          return BloodRequestCard(
+            request: req,
+            isMyRequest: isMyList,
+            onStatusChanged: isMyList
+                ? (newStatus) => _handleStatusUpdate(req, newStatus)
+                : null,
+          );
         },
       ),
     );

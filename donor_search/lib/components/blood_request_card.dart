@@ -7,12 +7,16 @@ class BloodRequestCard extends StatelessWidget {
   final BloodRequestModel request;
   final VoidCallback? onTap;
   final EdgeInsetsGeometry? margin;
+  final bool isMyRequest;
+  final ValueChanged<String>? onStatusChanged;
 
   const BloodRequestCard({
     super.key,
     required this.request,
     this.onTap,
     this.margin,
+    this.isMyRequest = false,
+    this.onStatusChanged,
   });
 
   Future<void> _callRequester(String? phone) async {
@@ -44,10 +48,10 @@ class BloodRequestCard extends StatelessWidget {
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: request.isCritical
+          color: request.isCritical && request.isActive
               ? AppColors.criticalUrgency.withValues(alpha: 0.35)
               : AppColors.cardBorder,
-          width: request.isCritical ? 1.5 : 1,
+          width: request.isCritical && request.isActive ? 1.5 : 1,
         ),
         boxShadow: [
           BoxShadow(
@@ -68,7 +72,7 @@ class BloodRequestCard extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Top row: Blood group & Urgency tag
+                // Top row: Blood group, Units, Urgency tag & Status tag
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -106,21 +110,30 @@ class BloodRequestCard extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(width: 6),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: urgencyBg,
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Text(
-                        request.urgency.toUpperCase(),
-                        style: TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w800,
-                          color: urgencyColor,
-                          letterSpacing: 0.5,
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: urgencyBg,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Text(
+                            request.urgency.toUpperCase(),
+                            style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w800,
+                              color: urgencyColor,
+                              letterSpacing: 0.5,
+                            ),
+                          ),
                         ),
-                      ),
+                        if (isMyRequest || !request.isActive) ...[
+                          const SizedBox(width: 6),
+                          _buildStatusBadge(request.status),
+                        ],
+                      ],
                     ),
                   ],
                 ),
@@ -183,7 +196,10 @@ class BloodRequestCard extends StatelessWidget {
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
-                    if (request.requesterMobile != null && request.requesterMobile!.isNotEmpty) ...[
+                    if (isMyRequest) ...[
+                      const SizedBox(width: 8),
+                      _buildMyRequestActions(context),
+                    ] else if (request.requesterMobile != null && request.requesterMobile!.isNotEmpty) ...[
                       const SizedBox(width: 8),
                       TextButton.icon(
                         onPressed: () => _callRequester(request.requesterMobile),
@@ -208,6 +224,120 @@ class BloodRequestCard extends StatelessWidget {
               ],
             ),
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStatusBadge(String status) {
+    Color bg;
+    Color fg;
+    IconData icon;
+
+    switch (status) {
+      case 'Fulfilled':
+        bg = const Color(0xFFE0F2F1);
+        fg = const Color(0xFF00796B);
+        icon = Icons.check_circle_outline;
+        break;
+      case 'Cancelled':
+        bg = const Color(0xFFEEEEEE);
+        fg = const Color(0xFF757575);
+        icon = Icons.cancel_outlined;
+        break;
+      case 'Active':
+      default:
+        bg = const Color(0xFFE8F5E9);
+        fg = const Color(0xFF2E7D32);
+        icon = Icons.radio_button_checked;
+        break;
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+      decoration: BoxDecoration(
+        color: bg,
+        borderRadius: BorderRadius.circular(6),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 12, color: fg),
+          const SizedBox(width: 3),
+          Text(
+            status.toUpperCase(),
+            style: TextStyle(fontSize: 10, fontWeight: FontWeight.w800, color: fg),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMyRequestActions(BuildContext context) {
+    return PopupMenuButton<String>(
+      tooltip: 'Update Request Status',
+      onSelected: (val) {
+        if (onStatusChanged != null) {
+          onStatusChanged!(val);
+        }
+      },
+      itemBuilder: (ctx) => [
+        if (request.status != 'Fulfilled')
+          const PopupMenuItem(
+            value: 'Fulfilled',
+            child: Row(
+              children: [
+                Icon(Icons.check_circle, color: Color(0xFF00796B), size: 18),
+                SizedBox(width: 8),
+                Text('Mark as Fulfilled', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+              ],
+            ),
+          ),
+        if (request.status != 'Cancelled')
+          const PopupMenuItem(
+            value: 'Cancelled',
+            child: Row(
+              children: [
+                Icon(Icons.cancel, color: Colors.grey, size: 18),
+                SizedBox(width: 8),
+                Text('Cancel Request', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+              ],
+            ),
+          ),
+        if (request.status != 'Active')
+          const PopupMenuItem(
+            value: 'Active',
+            child: Row(
+              children: [
+                Icon(Icons.refresh, color: AppColors.primary, size: 18),
+                SizedBox(width: 8),
+                Text('Reopen as Active', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+              ],
+            ),
+          ),
+      ],
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+        decoration: BoxDecoration(
+          color: AppColors.primary.withValues(alpha: 0.08),
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: AppColors.primary.withValues(alpha: 0.2)),
+        ),
+        child: const Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.edit_note, size: 16, color: AppColors.primary),
+            SizedBox(width: 4),
+            Text(
+              'Update Status',
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w700,
+                color: AppColors.primary,
+              ),
+            ),
+            Icon(Icons.arrow_drop_down, size: 16, color: AppColors.primary),
+          ],
         ),
       ),
     );

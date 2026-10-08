@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
+
 import '../constants/app_colors.dart';
 import '../models/donor_model.dart';
 import '../screens/profile/profile_screen.dart';
@@ -7,10 +8,7 @@ import '../screens/profile/profile_screen.dart';
 class DonorMapPopup extends StatelessWidget {
   final DonorModel donor;
 
-  const DonorMapPopup({
-    super.key,
-    required this.donor,
-  });
+  const DonorMapPopup({super.key, required this.donor});
 
   Future<void> _makeCall(String phone) async {
     final cleanPhone = phone.replaceAll(RegExp(r'[^0-9+]'), '');
@@ -37,8 +35,12 @@ class DonorMapPopup extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isGreen = donor.markerColor == 'green';
-    final statusColor = isGreen ? AppColors.availableGreen : AppColors.recentlyDonatedRed;
-    final statusBg = isGreen ? AppColors.availableGreenLight : AppColors.recentlyDonatedRedLight;
+    final statusColor = isGreen
+        ? AppColors.availableGreen
+        : AppColors.recentlyDonatedRed;
+    final statusBg = isGreen
+        ? AppColors.availableGreenLight
+        : AppColors.recentlyDonatedRedLight;
 
     return Container(
       padding: const EdgeInsets.all(20),
@@ -103,7 +105,11 @@ class DonorMapPopup extends StatelessWidget {
                         ),
                         if (donor.isVerified) ...[
                           const SizedBox(width: 4),
-                          const Icon(Icons.verified, color: Colors.blue, size: 18),
+                          const Icon(
+                            Icons.verified,
+                            color: Colors.blue,
+                            size: 18,
+                          ),
                         ],
                       ],
                     ),
@@ -119,7 +125,10 @@ class DonorMapPopup extends StatelessWidget {
                     Row(
                       children: [
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 3,
+                          ),
                           decoration: BoxDecoration(
                             color: statusBg,
                             borderRadius: BorderRadius.circular(6),
@@ -152,7 +161,8 @@ class DonorMapPopup extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 14),
-          if (donor.lastDonationDate != null && donor.lastDonationDate!.isNotEmpty) ...[
+          if (donor.lastDonationDate != null &&
+              donor.lastDonationDate!.isNotEmpty) ...[
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               decoration: BoxDecoration(
@@ -162,11 +172,18 @@ class DonorMapPopup extends StatelessWidget {
               ),
               child: Row(
                 children: [
-                  const Icon(Icons.calendar_today, size: 14, color: AppColors.textSecondary),
+                  const Icon(
+                    Icons.calendar_today,
+                    size: 14,
+                    color: AppColors.textSecondary,
+                  ),
                   const SizedBox(width: 8),
                   Text(
                     'Last Donated: ${donor.lastDonationDate}',
-                    style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: AppColors.textSecondary,
+                    ),
                   ),
                 ],
               ),
@@ -178,15 +195,28 @@ class DonorMapPopup extends StatelessWidget {
               Expanded(
                 child: OutlinedButton.icon(
                   onPressed: () => _makeCall(donor.mobileNumber),
-                  icon: const Icon(Icons.call, size: 18, color: AppColors.callBlue),
+                  icon: const Icon(
+                    Icons.call,
+                    size: 18,
+                    color: AppColors.callBlue,
+                  ),
                   label: const Text(
                     'Call',
-                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: AppColors.callBlue),
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.callBlue,
+                    ),
                   ),
                   style: OutlinedButton.styleFrom(
-                    side: const BorderSide(color: Color(0xFFBBDEFB), width: 1.5),
+                    side: const BorderSide(
+                      color: Color(0xFFBBDEFB),
+                      width: 1.5,
+                    ),
                     backgroundColor: const Color(0xFFF1F8FE),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                     padding: const EdgeInsets.symmetric(vertical: 12),
                   ),
                 ),
@@ -194,16 +224,29 @@ class DonorMapPopup extends StatelessWidget {
               const SizedBox(width: 10),
               Expanded(
                 child: ElevatedButton.icon(
-                  onPressed: () => _openWhatsApp(donor.whatsappNumber ?? donor.mobileNumber, donor.fullName),
-                  icon: const Icon(Icons.chat_bubble_outline, size: 18, color: Colors.white),
+                  onPressed: () => _openWhatsApp(
+                    donor.whatsappNumber ?? donor.mobileNumber,
+                    donor.fullName,
+                  ),
+                  icon: const Icon(
+                    Icons.chat_bubble_outline,
+                    size: 18,
+                    color: Colors.white,
+                  ),
                   label: const Text(
                     'WhatsApp',
-                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: Colors.white),
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.white,
+                    ),
                   ),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.whatsappGreen,
                     elevation: 0,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                     padding: const EdgeInsets.symmetric(vertical: 12),
                   ),
                 ),
@@ -217,7 +260,9 @@ class DonorMapPopup extends StatelessWidget {
                 Navigator.pop(context);
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (_) => ProfileScreen(donorId: donor.id)),
+                  MaterialPageRoute(
+                    builder: (_) => ProfileScreen(donorId: donor.id),
+                  ),
                 );
               },
               child: const Text(

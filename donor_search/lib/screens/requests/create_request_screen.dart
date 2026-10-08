@@ -4,6 +4,7 @@ import '../../constants/app_constants.dart';
 import '../../components/custom_button.dart';
 import '../../components/custom_text_field.dart';
 import '../../services/api_service.dart';
+import '../../services/storage_service.dart';
 
 class CreateRequestScreen extends StatefulWidget {
   const CreateRequestScreen({super.key});
@@ -43,6 +44,14 @@ class _CreateRequestScreenState extends State<CreateRequestScreen> {
 
   Future<void> _handleSubmit() async {
     if (!_formKey.currentState!.validate()) return;
+
+    final isLoggedIn = await StorageService.isLoggedIn();
+    if (!isLoggedIn) {
+      setState(() {
+        _errorMessage = 'Please log in to your account to post an emergency blood request.';
+      });
+      return;
+    }
 
     setState(() {
       _isLoading = true;

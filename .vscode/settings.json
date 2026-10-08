@@ -1,0 +1,9 @@
+{
+  "java.import.gradle.enabled": false,
+  "java.autobuild.enabled": false,
+  "java.project.resourceFilters": [
+    "node_modules",
+    ".git",
+    "donor_search/android"
+  ]
+}

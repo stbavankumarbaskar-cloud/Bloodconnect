@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../../constants/app_colors.dart';
 import '../../constants/app_constants.dart';
 import '../../components/custom_button.dart';
@@ -147,7 +148,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final districts = AppConstants.stateDistricts[_selectedState] ?? ['Madurai'];
+    final districts =
+        AppConstants.stateDistricts[_selectedState] ?? ['Madurai'];
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -180,7 +182,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 ),
                 child: const Row(
                   children: [
-                    Icon(Icons.volunteer_activism, size: 36, color: Colors.white),
+                    Icon(
+                      Icons.volunteer_activism,
+                      size: 36,
+                      color: Colors.white,
+                    ),
                     SizedBox(width: 14),
                     Expanded(
                       child: Column(
@@ -217,7 +223,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 hint: 'e.g. Anandha Krishnan',
                 controller: _nameController,
                 prefixIcon: Icons.person_outline,
-                validator: (v) => (v == null || v.trim().isEmpty) ? 'Full Name is required' : null,
+                validator: (v) => (v == null || v.trim().isEmpty)
+                    ? 'Full Name is required'
+                    : null,
               ),
               const SizedBox(height: 16),
 
@@ -230,7 +238,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   padding: EdgeInsets.symmetric(horizontal: 12, vertical: 14),
                   child: Text(
                     '+91',
-                    style: TextStyle(fontWeight: FontWeight.w700, color: AppColors.textPrimary),
+                    style: TextStyle(
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.textPrimary,
+                    ),
                   ),
                 ),
               ),
@@ -239,7 +250,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
               // Blood Group Selection Grid
               const Text(
                 'Select Blood Group *',
-                style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.textPrimary),
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.textPrimary,
+                ),
               ),
               const SizedBox(height: 8),
               Wrap(
@@ -253,14 +268,18 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w800,
-                        color: isSelected ? Colors.white : AppColors.textPrimary,
+                        color: isSelected
+                            ? Colors.white
+                            : AppColors.textPrimary,
                       ),
                     ),
                     selected: isSelected,
                     selectedColor: AppColors.primary,
                     backgroundColor: Colors.white,
                     side: BorderSide(
-                      color: isSelected ? AppColors.primary : AppColors.cardBorder,
+                      color: isSelected
+                          ? AppColors.primary
+                          : AppColors.cardBorder,
                       width: 1.5,
                     ),
                     onSelected: (selected) {
@@ -274,7 +293,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
               // Gender Selector
               const Text(
                 'Gender *',
-                style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.textPrimary),
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.textPrimary,
+                ),
               ),
               const SizedBox(height: 8),
               Row(
@@ -286,20 +309,30 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       child: OutlinedButton(
                         onPressed: () => setState(() => _selectedGender = g),
                         style: OutlinedButton.styleFrom(
-                          backgroundColor: isSelected ? AppColors.primarySoft : Colors.white,
+                          backgroundColor: isSelected
+                              ? AppColors.primarySoft
+                              : Colors.white,
                           side: BorderSide(
-                            color: isSelected ? AppColors.primary : AppColors.cardBorder,
+                            color: isSelected
+                                ? AppColors.primary
+                                : AppColors.cardBorder,
                             width: isSelected ? 1.8 : 1,
                           ),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
                           padding: const EdgeInsets.symmetric(vertical: 12),
                         ),
                         child: Text(
                           g,
                           style: TextStyle(
                             fontSize: 13,
-                            fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-                            color: isSelected ? AppColors.primary : AppColors.textSecondary,
+                            fontWeight: isSelected
+                                ? FontWeight.w700
+                                : FontWeight.w500,
+                            color: isSelected
+                                ? AppColors.primary
+                                : AppColors.textSecondary,
                           ),
                         ),
                       ),
@@ -312,7 +345,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
               // Date of Birth Picker
               CustomTextField(
                 label: 'Date of Birth',
-                hint: _dob != null ? _dob!.toIso8601String().substring(0, 10) : 'Tap to select DOB',
+                hint: _dob != null
+                    ? _dob!.toIso8601String().substring(0, 10)
+                    : 'Tap to select DOB',
                 readOnly: true,
                 onTap: () => _pickDate(isDob: true),
                 prefixIcon: Icons.cake_outlined,
@@ -333,7 +368,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
               // State Dropdown
               const Text(
                 'State *',
-                style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.textPrimary),
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.textPrimary,
+                ),
               ),
               const SizedBox(height: 6),
               Container(
@@ -369,7 +408,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
               // District Dropdown
               const Text(
                 'District *',
-                style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.textPrimary),
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.textPrimary,
+                ),
               ),
               const SizedBox(height: 6),
               Container(
@@ -381,7 +424,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 ),
                 child: DropdownButtonHideUnderline(
                   child: DropdownButton<String>(
-                    value: districts.contains(_selectedDistrict) ? _selectedDistrict : districts.first,
+                    value: districts.contains(_selectedDistrict)
+                        ? _selectedDistrict
+                        : districts.first,
                     isExpanded: true,
                     items: districts.map((d) {
                       return DropdownMenuItem(value: d, child: Text(d));
@@ -399,7 +444,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 hint: 'e.g. Anna Nagar / Simmakkal',
                 controller: _areaController,
                 prefixIcon: Icons.place_outlined,
-                validator: (v) => (v == null || v.trim().isEmpty) ? 'Area is required' : null,
+                validator: (v) =>
+                    (v == null || v.trim().isEmpty) ? 'Area is required' : null,
               ),
               const SizedBox(height: 16),
 
@@ -409,7 +455,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 controller: _pincodeController,
                 keyboardType: TextInputType.number,
                 prefixIcon: Icons.pin_drop_outlined,
-                validator: (v) => (v == null || v.trim().length != 6) ? 'Enter valid 6-digit Pincode' : null,
+                validator: (v) => (v == null || v.trim().length != 6)
+                    ? 'Enter valid 6-digit Pincode'
+                    : null,
               ),
               const SizedBox(height: 24),
 
@@ -430,8 +478,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 hint: _neverDonated
                     ? 'Never donated yet'
                     : (_lastDonationDate != null
-                        ? _lastDonationDate!.toIso8601String().substring(0, 10)
-                        : 'Tap to pick last donation date'),
+                          ? _lastDonationDate!.toIso8601String().substring(
+                              0,
+                              10,
+                            )
+                          : 'Tap to pick last donation date'),
                 readOnly: true,
                 onTap: () => _pickDate(isDob: false),
                 prefixIcon: Icons.calendar_today_outlined,
@@ -449,7 +500,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       });
                     },
                   ),
-                  const Text('I am donating for the first time', style: TextStyle(fontSize: 13)),
+                  const Text(
+                    'I am donating for the first time',
+                    style: TextStyle(fontSize: 13),
+                  ),
                 ],
               ),
               const SizedBox(height: 16),
@@ -457,7 +511,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
               // Availability Status
               const Text(
                 'Current Availability *',
-                style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.textPrimary),
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.textPrimary,
+                ),
               ),
               const SizedBox(height: 8),
               Row(
@@ -466,7 +524,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   const SizedBox(width: 8),
                   _buildAvailabilityChip('Busy', AppColors.busyOrange),
                   const SizedBox(width: 8),
-                  _buildAvailabilityChip('Unavailable', AppColors.recentlyDonatedRed),
+                  _buildAvailabilityChip(
+                    'Unavailable',
+                    AppColors.recentlyDonatedRed,
+                  ),
                 ],
               ),
 
@@ -479,7 +540,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     borderRadius: BorderRadius.circular(10),
                     border: Border.all(color: Colors.red.shade200),
                   ),
-                  child: Text(_errorMessage!, style: const TextStyle(color: Colors.red, fontSize: 13)),
+                  child: Text(
+                    _errorMessage!,
+                    style: const TextStyle(color: Colors.red, fontSize: 13),
+                  ),
                 ),
               ],
 
@@ -522,7 +586,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
           decoration: BoxDecoration(
             color: isSelected ? color.withValues(alpha: 0.15) : Colors.white,
             borderRadius: BorderRadius.circular(10),
-            border: Border.all(color: isSelected ? color : AppColors.cardBorder, width: isSelected ? 1.8 : 1),
+            border: Border.all(
+              color: isSelected ? color : AppColors.cardBorder,
+              width: isSelected ? 1.8 : 1,
+            ),
           ),
           child: Center(
             child: Text(

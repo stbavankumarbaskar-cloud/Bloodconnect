@@ -50,7 +50,9 @@ class DonorModel {
 
   factory DonorModel.fromJson(Map<String, dynamic> json) {
     return DonorModel(
-      id: json['id'] is int ? json['id'] : int.tryParse(json['id'].toString()) ?? 0,
+      id: json['id'] is int
+          ? json['id']
+          : int.tryParse(json['id'].toString()) ?? 0,
       fullName: json['full_name'] ?? '',
       mobileNumber: json['mobile_number'] ?? '',
       email: json['email'],
@@ -62,13 +64,22 @@ class DonorModel {
       district: json['district'] ?? '',
       area: json['area'] ?? '',
       pincode: json['pincode'] ?? '',
-      latitude: json['latitude'] != null ? double.tryParse(json['latitude'].toString()) : null,
-      longitude: json['longitude'] != null ? double.tryParse(json['longitude'].toString()) : null,
+      latitude: json['latitude'] != null
+          ? double.tryParse(json['latitude'].toString())
+          : null,
+      longitude: json['longitude'] != null
+          ? double.tryParse(json['longitude'].toString())
+          : null,
       whatsappNumber: json['whatsapp_number'] ?? json['mobile_number'],
       lastDonationDate: json['last_donation_date'],
       availabilityStatus: json['availability_status'] ?? 'Available',
-      isVerified: json['is_verified'] == 1 || json['is_verified'] == true || json['is_verified'] == '1',
-      distanceKm: json['distance_km'] != null ? double.tryParse(json['distance_km'].toString()) : null,
+      isVerified:
+          json['is_verified'] == 1 ||
+          json['is_verified'] == true ||
+          json['is_verified'] == '1',
+      distanceKm: json['distance_km'] != null
+          ? double.tryParse(json['distance_km'].toString())
+          : null,
       markerColor: json['marker_color'] ?? 'green',
       statusLabel: json['status_label'] ?? 'Potentially Available',
     );

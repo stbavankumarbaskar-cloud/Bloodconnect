@@ -320,12 +320,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: AppColors.cardBorder.withValues(alpha: 0.6)),
       ),
-      child: ListTile(
-        leading: Icon(icon, color: color ?? AppColors.textSecondary, size: 22),
-        title: Text(title, style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14, color: color ?? AppColors.textPrimary)),
-        subtitle: Text(subtitle, style: const TextStyle(fontSize: 12, color: AppColors.textSecondary)),
-        trailing: trailing ?? const Icon(Icons.chevron_right, size: 20, color: AppColors.textMuted),
-        onTap: onTap,
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(12),
+        child: ListTile(
+          leading: Icon(icon, color: color ?? AppColors.textSecondary, size: 22),
+          title: Text(title, style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14, color: color ?? AppColors.textPrimary)),
+          subtitle: Text(subtitle, style: const TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+          trailing: trailing ?? const Icon(Icons.chevron_right, size: 20, color: AppColors.textMuted),
+          onTap: onTap,
+        ),
       ),
     );
   }

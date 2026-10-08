@@ -30,6 +30,7 @@ class ApiService {
       final token = await StorageService.getToken();
       if (token != null && token.isNotEmpty) {
         headers['Authorization'] = 'Bearer $token';
+        headers['X-Auth-Token'] = token;
       }
     }
     return headers;
@@ -290,7 +291,13 @@ class ApiService {
       final queryParams = <String, String>{};
       if (status != null && status.isNotEmpty) queryParams['status'] = status;
       if (bloodGroup != null && bloodGroup.isNotEmpty) queryParams['blood_group'] = bloodGroup;
-      if (myRequests) queryParams['my_requests'] = '1';
+      if (myRequests) {
+        queryParams['my_requests'] = '1';
+        final token = await StorageService.getToken();
+        if (token != null && token.isNotEmpty) {
+          queryParams['token'] = token;
+        }
+      }
 
       final uri = Uri.parse(ApiEndpoints.listRequests).replace(queryParameters: queryParams);
       final response = await http.get(uri, headers: await _getHeaders(requireAuth: myRequests));
@@ -311,10 +318,20 @@ class ApiService {
   // Blood Requests: Create
   static Future<ApiResponse<Map<String, dynamic>>> createRequest(Map<String, dynamic> data) async {
     try {
+      final token = await StorageService.getToken();
+      final headers = await _getHeaders(requireAuth: true);
+      final payload = Map<String, dynamic>.from(data);
+      if (token != null && token.isNotEmpty) {
+        payload['token'] = token;
+      }
+      final uri = token != null && token.isNotEmpty
+          ? Uri.parse('${ApiEndpoints.createRequest}?token=$token')
+          : Uri.parse(ApiEndpoints.createRequest);
+
       final response = await http.post(
-        Uri.parse(ApiEndpoints.createRequest),
-        headers: await _getHeaders(requireAuth: true),
-        body: jsonEncode(data),
+        uri,
+        headers: headers,
+        body: jsonEncode(payload),
       );
       final json = jsonDecode(response.body);
       return ApiResponse(
@@ -324,6 +341,43 @@ class ApiService {
       );
     } catch (e) {
       return ApiResponse(success: false, message: 'Failed to create request: $e');
+    }
+  }
+
+  // Blood Requests: Update status or details
+  static Future<ApiResponse<Map<String, dynamic>>> updateRequestStatus({
+    required int requestId,
+    required String status,
+    Map<String, dynamic>? extraFields,
+  }) async {
+    try {
+      final token = await StorageService.getToken();
+      final headers = await _getHeaders(requireAuth: true);
+      final payload = <String, dynamic>{
+        'request_id': requestId,
+        'status': status,
+        ...?extraFields,
+      };
+      if (token != null && token.isNotEmpty) {
+        payload['token'] = token;
+      }
+      final uri = token != null && token.isNotEmpty
+          ? Uri.parse('${ApiEndpoints.updateRequest}?token=$token')
+          : Uri.parse(ApiEndpoints.updateRequest);
+
+      final response = await http.post(
+        uri,
+        headers: headers,
+        body: jsonEncode(payload),
+      );
+      final json = jsonDecode(response.body);
+      return ApiResponse(
+        success: json['success'] ?? false,
+        message: json['message'] ?? '',
+        data: json['data'],
+      );
+    } catch (e) {
+      return ApiResponse(success: false, message: 'Failed to update request: $e');
     }
   }
 

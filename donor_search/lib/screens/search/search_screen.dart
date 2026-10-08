@@ -7,7 +7,6 @@ import '../../components/custom_button.dart';
 import '../../components/custom_text_field.dart';
 import '../../models/donor_model.dart';
 import '../../services/api_service.dart';
-import '../../services/storage_service.dart';
 import '../profile/profile_screen.dart';
 
 class SearchScreen extends StatefulWidget {
@@ -103,7 +102,8 @@ class _SearchScreenState extends State<SearchScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final hasActiveFilters = _manualSearched ||
+    final hasActiveFilters =
+        _manualSearched ||
         _selectedState != null ||
         _selectedDistrict != null ||
         _areaController.text.isNotEmpty ||
@@ -123,7 +123,11 @@ class _SearchScreenState extends State<SearchScreen> {
         actions: [
           if (hasActiveFilters)
             TextButton.icon(
-              icon: const Icon(Icons.refresh, size: 18, color: AppColors.primary),
+              icon: const Icon(
+                Icons.refresh,
+                size: 18,
+                color: AppColors.primary,
+              ),
               label: const Text(
                 'Clear',
                 style: TextStyle(
@@ -167,7 +171,11 @@ class _SearchScreenState extends State<SearchScreen> {
                   children: [
                     const Row(
                       children: [
-                        Icon(Icons.location_city, color: AppColors.primary, size: 20),
+                        Icon(
+                          Icons.location_city,
+                          color: AppColors.primary,
+                          size: 20,
+                        ),
                         SizedBox(width: 8),
                         Text(
                           'Hierarchical Search: India → State → District',
@@ -183,7 +191,10 @@ class _SearchScreenState extends State<SearchScreen> {
                       InkWell(
                         onTap: _clearSearch,
                         child: const Padding(
-                          padding: EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                          padding: EdgeInsets.symmetric(
+                            horizontal: 4,
+                            vertical: 2,
+                          ),
                           child: Text(
                             'Clear',
                             style: TextStyle(
@@ -255,7 +266,10 @@ class _SearchScreenState extends State<SearchScreen> {
                               ),
                             ),
                             isExpanded: true,
-                            icon: const Icon(Icons.arrow_drop_down, color: AppColors.textMuted),
+                            icon: const Icon(
+                              Icons.arrow_drop_down,
+                              color: AppColors.textMuted,
+                            ),
                             items: AppConstants.indianStates.map((s) {
                               return DropdownMenuItem(
                                 value: s,
@@ -271,7 +285,10 @@ class _SearchScreenState extends State<SearchScreen> {
                             }).toList(),
                             onChanged: (val) {
                               setState(() {
-                                _selectedState = (val == null || val == 'Tamil Nadu') ? null : val;
+                                _selectedState =
+                                    (val == null || val == 'Tamil Nadu')
+                                    ? null
+                                    : val;
                                 _selectedDistrict = null;
                               });
                             },
@@ -295,11 +312,14 @@ class _SearchScreenState extends State<SearchScreen> {
                         ),
                         child: DropdownButtonHideUnderline(
                           child: DropdownButton<String>(
-                            value: (_selectedDistrict != null && districts.contains(_selectedDistrict))
+                            value:
+                                (_selectedDistrict != null &&
+                                    districts.contains(_selectedDistrict))
                                 ? _selectedDistrict
                                 : null,
                             hint: Text(
-                              (_selectedState != null && _selectedState != 'Tamil Nadu')
+                              (_selectedState != null &&
+                                      _selectedState != 'Tamil Nadu')
                                   ? 'Select District'
                                   : 'Madurai',
                               style: const TextStyle(
@@ -309,7 +329,10 @@ class _SearchScreenState extends State<SearchScreen> {
                               ),
                             ),
                             isExpanded: true,
-                            icon: const Icon(Icons.arrow_drop_down, color: AppColors.textMuted),
+                            icon: const Icon(
+                              Icons.arrow_drop_down,
+                              color: AppColors.textMuted,
+                            ),
                             items: districts.map((d) {
                               return DropdownMenuItem(
                                 value: d,
@@ -325,7 +348,10 @@ class _SearchScreenState extends State<SearchScreen> {
                             }).toList(),
                             onChanged: (val) {
                               setState(() {
-                                _selectedDistrict = (val == null || val == 'Madurai') ? null : val;
+                                _selectedDistrict =
+                                    (val == null || val == 'Madurai')
+                                    ? null
+                                    : val;
                               });
                             },
                           ),
@@ -349,11 +375,15 @@ class _SearchScreenState extends State<SearchScreen> {
                           ),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(10),
-                            borderSide: const BorderSide(color: AppColors.cardBorder),
+                            borderSide: const BorderSide(
+                              color: AppColors.cardBorder,
+                            ),
                           ),
                           enabledBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(10),
-                            borderSide: const BorderSide(color: AppColors.cardBorder),
+                            borderSide: const BorderSide(
+                              color: AppColors.cardBorder,
+                            ),
                           ),
                         ),
                       ),
@@ -395,7 +425,8 @@ class _SearchScreenState extends State<SearchScreen> {
                       selected: isSel,
                       selectedColor: AppColors.primary,
                       backgroundColor: Colors.white,
-                      onSelected: (_) => setState(() => _selectedBloodGroup = bg),
+                      onSelected: (_) =>
+                          setState(() => _selectedBloodGroup = bg),
                     );
                   }).toList(),
                 ),
@@ -406,7 +437,11 @@ class _SearchScreenState extends State<SearchScreen> {
                   children: [
                     if (hasActiveFilters) ...[
                       OutlinedButton.icon(
-                        icon: const Icon(Icons.refresh, size: 18, color: AppColors.textSecondary),
+                        icon: const Icon(
+                          Icons.refresh,
+                          size: 18,
+                          color: AppColors.textSecondary,
+                        ),
                         label: const Text(
                           'Clear',
                           style: TextStyle(
@@ -417,8 +452,13 @@ class _SearchScreenState extends State<SearchScreen> {
                         ),
                         style: OutlinedButton.styleFrom(
                           side: BorderSide(color: Colors.grey.shade300),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 13),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 13,
+                          ),
                         ),
                         onPressed: _clearSearch,
                       ),
@@ -468,7 +508,11 @@ class _SearchScreenState extends State<SearchScreen> {
                         ),
                       ),
                       TextButton.icon(
-                        icon: const Icon(Icons.close, size: 16, color: AppColors.primary),
+                        icon: const Icon(
+                          Icons.close,
+                          size: 16,
+                          color: AppColors.primary,
+                        ),
                         label: const Text(
                           'Clear Results',
                           style: TextStyle(
@@ -478,7 +522,10 @@ class _SearchScreenState extends State<SearchScreen> {
                           ),
                         ),
                         style: TextButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 4,
+                          ),
                           minimumSize: Size.zero,
                           tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                         ),

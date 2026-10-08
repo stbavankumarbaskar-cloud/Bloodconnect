@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:geolocator/geolocator.dart';
 
 import '../../constants/app_colors.dart';
 import '../../constants/app_constants.dart';
@@ -82,13 +83,15 @@ class _MapScreenState extends State<MapScreen> {
   List<MapSearchItem> _suggestions = [];
   bool _isLoading = true;
   bool _isPanelExpanded = true;
+  bool _isMapReady = false;
   MapTypeOption _selectedMapType = MapTypeOption.googleRoadmap;
 
   // Pre-configured Tamil Nadu landmarks, cities, and areas for quick search
   static final List<MapSearchItem> _tamilNaduLocations = [
     // Madurai Areas & Landmarks
     const MapSearchItem(title: 'Madurai Center', subtitle: 'Madurai, Tamil Nadu', location: LatLng(9.9252, 78.1198)),
-    const MapSearchItem(title: 'Keelapanangadi', subtitle: 'Madurai, Tamil Nadu (625017)', location: LatLng(9.9252, 78.1198)),
+    const MapSearchItem(title: 'Keelapanangadi', subtitle: 'Madurai, Tamil Nadu (625017)', location: LatLng(9.9575, 78.1062)),
+    const MapSearchItem(title: 'Thiruppuvanam', subtitle: 'Madurai / Sivagangai, Tamil Nadu (630611)', location: LatLng(9.8645, 78.2842)),
     const MapSearchItem(title: 'Anna Nagar', subtitle: 'Madurai, Tamil Nadu (625020)', location: LatLng(9.9275, 78.1420)),
     const MapSearchItem(title: 'KK Nagar', subtitle: 'Madurai, Tamil Nadu (625020)', location: LatLng(9.9340, 78.1480)),
     const MapSearchItem(title: 'Simmakkal', subtitle: 'Madurai, Tamil Nadu (625001)', location: LatLng(9.9238, 78.1215)),
@@ -197,16 +200,125 @@ class _MapScreenState extends State<MapScreen> {
     super.dispose();
   }
 
-  Future<void> _initLocationAndFetch() async {
-    final user = await StorageService.getUser();
-    if (user != null && user.latitude != null && user.longitude != null) {
-      if (mounted) {
-        setState(() {
-          _userLocation = LatLng(user.latitude!, user.longitude!);
-          _selectedLocationName = user.area.isNotEmpty ? '${user.area}, ${user.district}' : user.district;
-        });
+  String _getNearestLocationName(LatLng pos) {
+    const Distance dist = Distance();
+    MapSearchItem? nearest;
+    double minMeters = double.infinity;
+
+    for (final loc in _tamilNaduLocations) {
+      final d = dist(pos, loc.location);
+      if (d < minMeters) {
+        minMeters = d;
+        nearest = loc;
       }
     }
+
+    if (nearest != null && minMeters < 5000) {
+      return 'Live GPS (${nearest.title})';
+    }
+    return 'Live Device GPS';
+  }
+
+  Future<Position?> _getDeviceLivePosition({bool showErrors = false}) async {
+    try {
+      final serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (!serviceEnabled) {
+        if (showErrors && mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Please enable GPS / Location on your mobile device.'),
+              backgroundColor: Colors.orange,
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+        }
+        return null;
+      }
+
+      LocationPermission permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+        if (permission == LocationPermission.denied) {
+          if (showErrors && mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Location permission was denied by device.'),
+                backgroundColor: Colors.orange,
+                behavior: SnackBarBehavior.floating,
+              ),
+            );
+          }
+          return null;
+        }
+      }
+
+      if (permission == LocationPermission.deniedForever) {
+        if (showErrors && mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Location permission permanently denied. Enable it in App Settings.'),
+              backgroundColor: Colors.red,
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+        }
+        return null;
+      }
+
+      try {
+        return await Geolocator.getCurrentPosition(
+          locationSettings: const LocationSettings(
+            accuracy: LocationAccuracy.high,
+            timeLimit: Duration(seconds: 8),
+          ),
+        );
+      } catch (_) {
+        return await Geolocator.getLastKnownPosition();
+      }
+    } catch (e) {
+      debugPrint('Geolocator error: $e');
+      return null;
+    }
+  }
+
+  Future<void> _initLocationAndFetch() async {
+    // 1. Try to get real-time device GPS location
+    final pos = await _getDeviceLivePosition(showErrors: false);
+    if (pos != null && mounted) {
+      final realLoc = LatLng(pos.latitude, pos.longitude);
+      setState(() {
+        _userLocation = realLoc;
+        _selectedLocationName = _getNearestLocationName(realLoc);
+      });
+      if (_isMapReady) {
+        _mapController.move(_userLocation, _getZoomForRadius(_radiusKm));
+      }
+    } else {
+      // Fallback to saved profile location if GPS is unavailable
+      final user = await StorageService.getUser();
+      if (user != null && user.latitude != null && user.longitude != null) {
+        if (mounted) {
+          setState(() {
+            _userLocation = LatLng(user.latitude!, user.longitude!);
+            _selectedLocationName = user.area.isNotEmpty
+                ? '${user.area}, ${user.district}'
+                : (user.district.isNotEmpty ? user.district : 'My Live Location');
+          });
+          if (_isMapReady) {
+            _mapController.move(_userLocation, _getZoomForRadius(_radiusKm));
+          }
+        }
+      }
+    }
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted && _isMapReady) {
+        try {
+          _mapController.move(_userLocation, _getZoomForRadius(_radiusKm));
+        } catch (_) {}
+      }
+    });
+
     _fetchDonorsForMap();
   }
 
@@ -377,21 +489,35 @@ class _MapScreenState extends State<MapScreen> {
 
   Future<void> _handleUseLiveLocation() async {
     _clearSearch();
-    setState(() {
-      _selectedLocationName = 'Live GPS Center';
-      _isLoading = true;
-    });
-    final user = await StorageService.getUser();
-    if (user != null && user.latitude != null && user.longitude != null) {
+    setState(() => _isLoading = true);
+
+    final pos = await _getDeviceLivePosition(showErrors: true);
+    if (pos != null) {
+      final realLoc = LatLng(pos.latitude, pos.longitude);
       setState(() {
-        _userLocation = LatLng(user.latitude!, user.longitude!);
+        _userLocation = realLoc;
+        _selectedLocationName = _getNearestLocationName(realLoc);
       });
     } else {
-      setState(() {
-        _userLocation = const LatLng(9.9252, 78.1198);
-      });
+      final user = await StorageService.getUser();
+      if (user != null && user.latitude != null && user.longitude != null) {
+        setState(() {
+          _userLocation = LatLng(user.latitude!, user.longitude!);
+          _selectedLocationName = user.area.isNotEmpty
+              ? '${user.area}, ${user.district}'
+              : (user.district.isNotEmpty ? user.district : 'My Live Location');
+        });
+      } else {
+        setState(() {
+          _userLocation = const LatLng(9.9252, 78.1198);
+          _selectedLocationName = 'Madurai Center';
+        });
+      }
     }
-    _mapController.move(_userLocation, _getZoomForRadius(_radiusKm));
+
+    if (_isMapReady) {
+      _mapController.move(_userLocation, _getZoomForRadius(_radiusKm));
+    }
     await _fetchDonorsForMap();
 
     if (!mounted) return;
@@ -403,7 +529,7 @@ class _MapScreenState extends State<MapScreen> {
             const SizedBox(width: 8),
             Expanded(
               child: Text(
-                'Live GPS calibrated • ${_donors.length} donors found within ${_radiusKm.toInt()} KM zone',
+                'Live Device GPS: ${_userLocation.latitude.toStringAsFixed(4)}°, ${_userLocation.longitude.toStringAsFixed(4)}° • ${_donors.length} donors in ${_radiusKm.toInt()} KM zone',
                 style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
               ),
             ),
@@ -411,7 +537,7 @@ class _MapScreenState extends State<MapScreen> {
         ),
         backgroundColor: AppColors.primary,
         behavior: SnackBarBehavior.floating,
-        duration: const Duration(seconds: 2),
+        duration: const Duration(seconds: 3),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
       ),
     );
@@ -442,7 +568,11 @@ class _MapScreenState extends State<MapScreen> {
               initialZoom: _getZoomForRadius(_radiusKm),
               minZoom: 6.0,
               maxZoom: 20.0,
-              onTap: (_, __) {
+              onMapReady: () {
+                _isMapReady = true;
+                _mapController.move(_userLocation, _getZoomForRadius(_radiusKm));
+              },
+              onTap: (_, _) {
                 if (_searchFocusNode.hasFocus) {
                   _searchFocusNode.unfocus();
                 }
@@ -477,31 +607,87 @@ class _MapScreenState extends State<MapScreen> {
               // Markers Layer: User Location + Donor Pins
               MarkerLayer(
                 markers: [
-                  // Center Location Pin
+                  // Center Location Pin (High-Visibility Live GPS Indicator)
                   Marker(
                     point: _userLocation,
-                    width: 44,
-                    height: 44,
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: Colors.blue.shade700,
-                        shape: BoxShape.circle,
-                        border: Border.all(color: Colors.white, width: 3),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.blue.withValues(alpha: 0.4),
-                            blurRadius: 10,
-                            offset: const Offset(0, 3),
+                    width: 110,
+                    height: 72,
+                    alignment: Alignment.center,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        // "YOU ARE HERE" Live Badge
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                          decoration: BoxDecoration(
+                            color: Colors.blue.shade800,
+                            borderRadius: BorderRadius.circular(12),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.25),
+                                blurRadius: 6,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
                           ),
-                        ],
-                      ),
-                      child: const Center(
-                        child: Icon(
-                          Icons.person,
-                          color: Colors.white,
-                          size: 22,
+                          child: const Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Icons.my_location, color: Colors.white, size: 10),
+                              SizedBox(width: 4),
+                              Text(
+                                'YOU ARE HERE',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 9,
+                                  fontWeight: FontWeight.w900,
+                                  letterSpacing: 0.4,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
-                      ),
+                        const SizedBox(height: 3),
+                        // Outer Pulsating Radar Ring + Center Dot
+                        Stack(
+                          alignment: Alignment.center,
+                          children: [
+                            Container(
+                              width: 38,
+                              height: 38,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: Colors.blue.withValues(alpha: 0.22),
+                              ),
+                            ),
+                            Container(
+                              width: 24,
+                              height: 24,
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                shape: BoxShape.circle,
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withValues(alpha: 0.25),
+                                    blurRadius: 5,
+                                    offset: const Offset(0, 2),
+                                  ),
+                                ],
+                              ),
+                              child: Center(
+                                child: Container(
+                                  width: 14,
+                                  height: 14,
+                                  decoration: BoxDecoration(
+                                    color: Colors.blue.shade600,
+                                    shape: BoxShape.circle,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
                     ),
                   ),
 
@@ -627,12 +813,14 @@ class _MapScreenState extends State<MapScreen> {
                           decoration: BoxDecoration(
                             border: Border(top: BorderSide(color: Colors.grey.shade200)),
                           ),
-                          child: ListView.separated(
-                            shrinkWrap: true,
-                            padding: EdgeInsets.zero,
-                            itemCount: _suggestions.length,
-                            separatorBuilder: (_, __) => Divider(height: 1, color: Colors.grey.shade100),
-                            itemBuilder: (context, index) {
+                          child: Material(
+                            color: Colors.transparent,
+                            child: ListView.separated(
+                              shrinkWrap: true,
+                              padding: EdgeInsets.zero,
+                              itemCount: _suggestions.length,
+                              separatorBuilder: (_, _) => Divider(height: 1, color: Colors.grey.shade100),
+                              itemBuilder: (context, index) {
                               final item = _suggestions[index];
                               return ListTile(
                                 dense: true,
@@ -682,6 +870,7 @@ class _MapScreenState extends State<MapScreen> {
                             },
                           ),
                         ),
+                      ),
                     ],
                   ),
                 ),
@@ -792,35 +981,6 @@ class _MapScreenState extends State<MapScreen> {
             ),
           ),
 
-          // Map Type Switcher FAB (Google Maps Layers)
-          Positioned(
-            right: 16,
-            bottom: _isPanelExpanded ? 260 : 125,
-            child: FloatingActionButton.small(
-              heroTag: 'map_layer_switcher_fab',
-              backgroundColor: Colors.white,
-              foregroundColor: AppColors.primary,
-              elevation: 4,
-              tooltip: 'Change Map Layer',
-              onPressed: _showMapTypeSelector,
-              child: const Icon(Icons.layers_rounded),
-            ),
-          ),
-
-          // Recenter FAB
-          Positioned(
-            right: 16,
-            bottom: _isPanelExpanded ? 208 : 72,
-            child: FloatingActionButton.small(
-              heroTag: 'recenter_map_fab',
-              backgroundColor: Colors.white,
-              foregroundColor: AppColors.primary,
-              elevation: 4,
-              tooltip: 'Center Location',
-              onPressed: _handleUseLiveLocation,
-              child: const Icon(Icons.my_location),
-            ),
-          ),
 
           // Bottom Live Location & Zone Control Card
           Positioned(
@@ -964,9 +1124,9 @@ class _MapScreenState extends State<MapScreen> {
                         ),
                         _buildLegendItem(
                           AppColors.recentlyDonatedRed,
-                          'Recently Donated (<6m)',
+                          '$recentCount Donated (<6m)',
                         ),
-                        _buildLegendItem(Colors.blue.shade700, 'Center Pin'),
+                        _buildLegendItem(Colors.blue.shade700, 'My Location'),
                       ],
                     ),
                   ] else ...[
@@ -998,6 +1158,40 @@ class _MapScreenState extends State<MapScreen> {
                   ],
                 ],
               ),
+            ),
+          ),
+
+          // Floating Map Action Buttons (Layers & Recenter GPS)
+          AnimatedPositioned(
+            duration: const Duration(milliseconds: 250),
+            curve: Curves.easeInOut,
+            right: 16,
+            bottom: _isPanelExpanded ? 315 : 140,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Map Type Switcher FAB (Google Maps Layers)
+                FloatingActionButton.small(
+                  heroTag: 'map_layer_switcher_fab',
+                  backgroundColor: Colors.white,
+                  foregroundColor: AppColors.primary,
+                  elevation: 4,
+                  tooltip: 'Change Map Layer',
+                  onPressed: _showMapTypeSelector,
+                  child: const Icon(Icons.layers_rounded),
+                ),
+                const SizedBox(height: 10),
+                // Recenter FAB (Live Location)
+                FloatingActionButton.small(
+                  heroTag: 'recenter_map_fab',
+                  backgroundColor: Colors.white,
+                  foregroundColor: Colors.blue.shade700,
+                  elevation: 4,
+                  tooltip: 'Center Live Location',
+                  onPressed: _handleUseLiveLocation,
+                  child: const Icon(Icons.my_location),
+                ),
+              ],
             ),
           ),
         ],
@@ -1042,54 +1236,57 @@ class _MapScreenState extends State<MapScreen> {
                 const SizedBox(height: 12),
                 ...MapTypeOption.values.map((type) {
                   final isSelected = _selectedMapType == type;
-                  return ListTile(
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 4,
-                    ),
-                    leading: Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: isSelected
-                            ? AppColors.primarySoft
-                            : Colors.grey.shade100,
-                        shape: BoxShape.circle,
+                  return Material(
+                    color: Colors.transparent,
+                    child: ListTile(
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 4,
                       ),
-                      child: Icon(
-                        type.icon,
-                        color: isSelected
-                            ? AppColors.primary
-                            : Colors.grey.shade700,
-                        size: 22,
+                      leading: Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: isSelected
+                              ? AppColors.primarySoft
+                              : Colors.grey.shade100,
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(
+                          type.icon,
+                          color: isSelected
+                              ? AppColors.primary
+                              : Colors.grey.shade700,
+                          size: 22,
+                        ),
                       ),
-                    ),
-                    title: Text(
-                      type.label,
-                      style: TextStyle(
-                        fontWeight: isSelected
-                            ? FontWeight.w800
-                            : FontWeight.w500,
-                        color: isSelected
-                            ? AppColors.primary
-                            : AppColors.textPrimary,
+                      title: Text(
+                        type.label,
+                        style: TextStyle(
+                          fontWeight: isSelected
+                              ? FontWeight.w800
+                              : FontWeight.w500,
+                          color: isSelected
+                              ? AppColors.primary
+                              : AppColors.textPrimary,
+                        ),
                       ),
+                      trailing: isSelected
+                          ? const Icon(
+                              Icons.check_circle,
+                              color: AppColors.primary,
+                            )
+                          : null,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      tileColor: isSelected
+                          ? AppColors.primarySoft.withValues(alpha: 0.5)
+                          : null,
+                      onTap: () {
+                        setState(() => _selectedMapType = type);
+                        Navigator.pop(ctx);
+                      },
                     ),
-                    trailing: isSelected
-                        ? const Icon(
-                            Icons.check_circle,
-                            color: AppColors.primary,
-                          )
-                        : null,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    tileColor: isSelected
-                        ? AppColors.primarySoft.withValues(alpha: 0.5)
-                        : null,
-                    onTap: () {
-                      setState(() => _selectedMapType = type);
-                      Navigator.pop(ctx);
-                    },
                   );
                 }),
               ],

@@ -30,11 +30,13 @@ class ApiEndpoints {
   static String get donorList => '$baseUrl/api/donors/list.php';
   static String get donorDetails => '$baseUrl/api/donors/details.php';
   static String get nearbyDonors => '$baseUrl/api/donors/nearby.php';
-  static String get updateDonorStatus => '$baseUrl/api/donors/update-status.php';
+  static String get updateDonorStatus =>
+      '$baseUrl/api/donors/update-status.php';
 
   // Search endpoints
   static String get manualSearch => '$baseUrl/api/search/manual.php';
-  static String get liveLocationSearch => '$baseUrl/api/search/live-location.php';
+  static String get liveLocationSearch =>
+      '$baseUrl/api/search/live-location.php';
 
   // Profile endpoints
   static String get getProfile => '$baseUrl/api/profile/get.php';

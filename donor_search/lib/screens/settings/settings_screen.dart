@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../../constants/app_colors.dart';
 import '../../models/user_model.dart';
 import '../../services/api_service.dart';
@@ -30,18 +31,22 @@ class _SettingsScreenState extends State<SettingsScreen> {
     setState(() => _user = user);
   }
 
-
   void _showAboutDialog() {
     showDialog(
       context: context,
       builder: (ctx) {
         return AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
           title: const Row(
             children: [
               Icon(Icons.water_drop, color: AppColors.primary),
               SizedBox(width: 8),
-              Text('BloodBridge v1.0.0', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 18)),
+              Text(
+                'BloodBridge v1.0.0',
+                style: TextStyle(fontWeight: FontWeight.w800, fontSize: 18),
+              ),
             ],
           ),
           content: const Text(
@@ -55,7 +60,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
           actions: [
             ElevatedButton(
-              style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary,
+              ),
               onPressed: () => Navigator.pop(ctx),
               child: const Text('Close', style: TextStyle(color: Colors.white)),
             ),
@@ -70,10 +77,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
       context: context,
       builder: (ctx) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text('Log Out', style: TextStyle(fontWeight: FontWeight.w800)),
+        title: const Text(
+          'Log Out',
+          style: TextStyle(fontWeight: FontWeight.w800),
+        ),
         content: const Text('Are you sure you want to log out of BloodBridge?'),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancel'),
+          ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
             onPressed: () => Navigator.pop(ctx, true),
@@ -99,7 +112,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: const Text('Settings & Account', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 18)),
+        title: const Text(
+          'Settings & Account',
+          style: TextStyle(fontWeight: FontWeight.w800, fontSize: 18),
+        ),
         backgroundColor: Colors.white,
         foregroundColor: AppColors.textPrimary,
         elevation: 0.5,
@@ -126,7 +142,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       backgroundColor: AppColors.primarySoft,
                       child: Text(
                         _user!.bloodGroup,
-                        style: const TextStyle(fontWeight: FontWeight.w900, color: AppColors.primary, fontSize: 18),
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w900,
+                          color: AppColors.primary,
+                          fontSize: 18,
+                        ),
                       ),
                     ),
                     const SizedBox(width: 14),
@@ -136,15 +156,24 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         children: [
                           Text(
                             _user!.fullName,
-                            style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16),
+                            style: const TextStyle(
+                              fontWeight: FontWeight.w800,
+                              fontSize: 16,
+                            ),
                           ),
                           Text(
                             '+91 ${_user!.mobileNumber}',
-                            style: const TextStyle(fontSize: 13, color: AppColors.textSecondary),
+                            style: const TextStyle(
+                              fontSize: 13,
+                              color: AppColors.textSecondary,
+                            ),
                           ),
                           Text(
                             '${_user!.area}, ${_user!.district}',
-                            style: const TextStyle(fontSize: 12, color: AppColors.textMuted),
+                            style: const TextStyle(
+                              fontSize: 12,
+                              color: AppColors.textMuted,
+                            ),
                           ),
                         ],
                       ),
@@ -161,7 +190,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
               title: 'My Profile',
               subtitle: 'View your public donor card and eligibility',
               onTap: () {
-                Navigator.push(context, MaterialPageRoute(builder: (_) => const ProfileScreen()));
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const ProfileScreen()),
+                );
               },
             ),
             _buildTile(
@@ -170,7 +202,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
               subtitle: 'Update address, availability, blood group',
               onTap: () async {
                 if (_user != null) {
-                  await Navigator.push(context, MaterialPageRoute(builder: (_) => EditProfileScreen(user: _user!)));
+                  await Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => EditProfileScreen(user: _user!),
+                    ),
+                  );
                   _loadUser();
                 }
               },
@@ -180,18 +217,31 @@ class _SettingsScreenState extends State<SettingsScreen> {
               title: 'Donation History',
               subtitle: 'Track your lifetime donations & certificates',
               onTap: () {
-                Navigator.push(context, MaterialPageRoute(builder: (_) => const DonationHistoryScreen()));
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const DonationHistoryScreen(),
+                  ),
+                );
               },
             ),
-
 
             const SizedBox(height: 16),
             // App Settings
             _buildSectionHeader('App Settings & Privacy'),
             SwitchListTile(
-              secondary: const Icon(Icons.notifications_active_outlined, color: AppColors.textSecondary),
-              title: const Text('Emergency Alerts', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
-              subtitle: const Text('Get alerts for nearby critical blood requests', style: TextStyle(fontSize: 12)),
+              secondary: const Icon(
+                Icons.notifications_active_outlined,
+                color: AppColors.textSecondary,
+              ),
+              title: const Text(
+                'Emergency Alerts',
+                style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
+              ),
+              subtitle: const Text(
+                'Get alerts for nearby critical blood requests',
+                style: TextStyle(fontSize: 12),
+              ),
               value: _notificationsEnabled,
               activeThumbColor: AppColors.primary,
               onChanged: (val) => setState(() => _notificationsEnabled = val),
@@ -199,7 +249,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
             _buildTile(
               icon: Icons.lock_outline,
               title: 'Location Privacy',
-              subtitle: 'Approximate donor pins shown to protect exact home address',
+              subtitle:
+                  'Approximate donor pins shown to protect exact home address',
               onTap: () {},
             ),
 
@@ -231,7 +282,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
       child: Text(
         title.toUpperCase(),
-        style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: AppColors.textMuted, letterSpacing: 0.8),
+        style: const TextStyle(
+          fontSize: 11,
+          fontWeight: FontWeight.w800,
+          color: AppColors.textMuted,
+          letterSpacing: 0.8,
+        ),
       ),
     );
   }
@@ -255,10 +311,33 @@ class _SettingsScreenState extends State<SettingsScreen> {
         color: Colors.transparent,
         borderRadius: BorderRadius.circular(12),
         child: ListTile(
-          leading: Icon(icon, color: color ?? AppColors.textSecondary, size: 22),
-          title: Text(title, style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14, color: color ?? AppColors.textPrimary)),
-          subtitle: Text(subtitle, style: const TextStyle(fontSize: 12, color: AppColors.textSecondary)),
-          trailing: trailing ?? const Icon(Icons.chevron_right, size: 20, color: AppColors.textMuted),
+          leading: Icon(
+            icon,
+            color: color ?? AppColors.textSecondary,
+            size: 22,
+          ),
+          title: Text(
+            title,
+            style: TextStyle(
+              fontWeight: FontWeight.w700,
+              fontSize: 14,
+              color: color ?? AppColors.textPrimary,
+            ),
+          ),
+          subtitle: Text(
+            subtitle,
+            style: const TextStyle(
+              fontSize: 12,
+              color: AppColors.textSecondary,
+            ),
+          ),
+          trailing:
+              trailing ??
+              const Icon(
+                Icons.chevron_right,
+                size: 20,
+                color: AppColors.textMuted,
+              ),
           onTap: onTap,
         ),
       ),
